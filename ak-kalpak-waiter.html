@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ak-Kalpak — Официант</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2ECC71;
+    --green-dark: #27AE60;
+    --green-light: #EAFAF1;
+    --green-mid: #D5F5E3;
+    --red: #E74C3C;
+    --red-light: #FDEDEC;
+    --orange: #F39C12;
+    --orange-light: #FEF9E7;
+    --text: #1a1a2e;
+    --text-light: #6b7280;
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --shadow: 0 2px 12px rgba(46,204,113,0.10);
+    --radius: 18px;
+    --radius-sm: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; max-width:480px; margin:0 auto; }
+
+  /* ========== LOGIN ========== */
+  #loginScreen {
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:32px 24px;
+    background: linear-gradient(160deg, #eafaf1 0%, #f7f8fa 100%);
+  }
+  .login-logo {
+    width:72px; height:72px;
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    border-radius:22px; display:flex; align-items:center; justify-content:center;
+    font-size:34px; box-shadow:0 8px 24px rgba(46,204,113,0.35); margin-bottom:16px;
+  }
+  .login-title { font-size:26px; font-weight:900; margin-bottom:4px; }
+  .login-sub { font-size:14px; color:var(--text-light); font-weight:600; margin-bottom:36px; }
+  .login-form { width:100%; display:flex; flex-direction:column; gap:14px; }
+  .input-wrap { position:relative; }
+  .input-wrap input {
+    width:100%; padding:16px 18px; border-radius:14px;
+    border:2px solid #e5e7eb; font-size:15px; font-family:'Nunito',sans-serif;
+    font-weight:700; outline:none; background:var(--white);
+    transition:border-color 0.2s;
+  }
+  .input-wrap input:focus { border-color:var(--green); }
+  .btn-green {
+    width:100%; padding:17px; background:linear-gradient(135deg,var(--green),var(--green-dark));
+    color:white; border:none; border-radius:14px; font-size:16px;
+    font-weight:800; font-family:'Nunito',sans-serif; cursor:pointer;
+    box-shadow:0 6px 20px rgba(46,204,113,0.35); transition:transform 0.15s;
+  }
+  .btn-green:active { transform:scale(0.97); }
+  .login-error {
+    background:var(--red-light); color:var(--red); border-radius:10px;
+    padding:10px 14px; font-size:13px; font-weight:700; text-align:center; display:none;
+  }
+
+  /* ========== MAIN APP ========== */
+  #app { display:none; flex-direction:column; min-height:100vh; padding-bottom:70px; }
+
+  /* TOP BAR */
+  .topbar {
+    background:var(--white); padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  }
+  .topbar-left { display:flex; align-items:center; gap:10px; }
+  .topbar-logo {
+    width:38px; height:38px;
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .topbar-name { font-size:16px; font-weight:900; }
+  .topbar-role { font-size:11px; color:var(--text-light); font-weight:600; }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .notif-badge {
+    background:var(--red); color:white; border-radius:20px;
+    padding:4px 10px; font-size:11px; font-weight:800; display:none;
+  }
+  .logout-btn {
+    background:var(--bg); border:none; border-radius:10px;
+    padding:7px 12px; font-size:12px; font-weight:700;
+    color:var(--text-light); font-family:'Nunito',sans-serif; cursor:pointer;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    background:var(--white); display:flex;
+    box-shadow:0 -2px 16px rgba(0,0,0,0.08); z-index:100;
+  }
+  .nav-btn {
+    flex:1; padding:10px 0 12px; display:flex; flex-direction:column;
+    align-items:center; gap:3px; border:none; background:none;
+    font-family:'Nunito',sans-serif; cursor:pointer; transition:all 0.15s;
+  }
+  .nav-btn .nav-icon { font-size:22px; }
+  .nav-btn .nav-label { font-size:10px; font-weight:700; color:var(--text-light); }
+  .nav-btn.active .nav-label { color:var(--green-dark); }
+  .nav-btn .nav-dot {
+    width:6px; height:6px; background:var(--red); border-radius:50%;
+    position:absolute; top:8px; margin-left:14px; display:none;
+  }
+  .nav-btn.active .nav-icon { filter:drop-shadow(0 0 4px rgba(46,204,113,0.5)); }
+
+  /* PAGES */
+  .page { display:none; padding:16px; }
+  .page.active { display:block; }
+
+  /* SECTION HEADER */
+  .sec-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .sec-title { font-size:20px; font-weight:900; }
+
+  /* ---- PAGE: МЕНЮ ---- */
+  .cats-wrap {
+    display:flex; gap:8px; overflow-x:auto; padding-bottom:12px; scrollbar-width:none;
+  }
+  .cats-wrap::-webkit-scrollbar { display:none; }
+  .cat-btn {
+    flex-shrink:0; padding:7px 16px; border-radius:20px; font-size:13px; font-weight:700;
+    font-family:'Nunito',sans-serif; border:2px solid #e5e7eb; cursor:pointer;
+    background:var(--bg); color:var(--text-light); transition:all 0.2s;
+  }
+  .cat-btn.active {
+    background:var(--green); color:white; border-color:var(--green);
+    box-shadow:0 4px 12px rgba(46,204,113,0.3);
+  }
+  .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .m-card {
+    background:var(--white); border-radius:var(--radius); overflow:hidden;
+    box-shadow:var(--shadow); position:relative;
+  }
+  .m-card-img {
+    width:100%; aspect-ratio:1; background:linear-gradient(135deg,#e8f8ef,#d5f5e3);
+    display:flex; align-items:center; justify-content:center; font-size:36px;
+  }
+  .m-card-body { padding:8px 10px 10px; }
+  .m-card-price { font-size:15px; font-weight:900; color:var(--green-dark); margin-bottom:3px; }
+  .m-card-name { font-size:11px; font-weight:700; line-height:1.3; margin-bottom:2px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .m-card-desc { font-size:10px; color:var(--text-light); line-height:1.35;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .add-btn {
+    position:absolute; bottom:40px; right:8px;
+    width:30px; height:30px; background:var(--green); border-radius:50%;
+    border:none; color:white; font-size:20px; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(46,204,113,0.4);
+    font-family:'Nunito',sans-serif; transition:transform 0.15s;
+  }
+  .add-btn:active { transform:scale(0.9); }
+  .qty-ctrl {
+    position:absolute; bottom:40px; right:4px;
+    display:flex; align-items:center; gap:4px;
+    background:var(--green); border-radius:20px; padding:4px 8px;
+  }
+  .qty-ctrl button {
+    width:22px; height:22px; border-radius:50%; border:none; background:rgba(255,255,255,0.25);
+    color:white; font-size:16px; font-weight:800; cursor:pointer; font-family:'Nunito',sans-serif;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qty-ctrl span { font-size:13px; font-weight:800; color:white; min-width:14px; text-align:center; }
+
+  /* CART BAR */
+  .cart-bar-wrap {
+    position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:448px; z-index:99;
+  }
+  .cart-bar {
+    background:linear-gradient(135deg,var(--green),var(--green-dark));
+    border-radius:16px; padding:14px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer; box-shadow:0 6px 24px rgba(46,204,113,0.4);
+    transition:transform 0.15s;
+  }
+  .cart-bar:active { transform:scale(0.98); }
+  .cart-bar-left { display:flex; align-items:center; gap:8px; }
+  .cart-count {
+    background:rgba(255,255,255,0.25); color:white;
+    font-size:11px; font-weight:800; width:22px; height:22px;
+    border-radius:6px; display:flex; align-items:center; justify-content:center;
+  }
+  .cart-bar-text { font-size:13px; font-weight:800; color:white; }
+  .cart-bar-price { font-size:15px; font-weight:900; color:white; }
+
+  /* ---- PAGE: ЗАКАЗЫ ---- */
+  .orders-list { display:flex; flex-direction:column; gap:12px; }
+  .order-card {
+    background:var(--white); border-radius:var(--radius); padding:14px 16px;
+    box-shadow:var(--shadow);
+  }
+  .order-card-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+  }
+  .order-table { font-size:16px; font-weight:900; }
+  .order-status {
+    font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px;
+  }
+  .status-open { background:var(--green-light); color:var(--green-dark); }
+  .status-closed { background:#f3f4f6; color:var(--text-light); }
+  .order-waiter { font-size:11px; color:var(--text-light); font-weight:600; margin-bottom:8px; }
+  .order-items-list { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .order-item-row {
+    display:flex; justify-content:space-between; font-size:12px;
+  }
+  .order-item-name { color:var(--text); font-weight:600; }
+  .order-item-price { color:var(--text-light); font-weight:700; }
+  .order-footer {
+    border-top:1px solid #f3f4f6; padding-top:10px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .order-total { font-size:15px; font-weight:900; }
+  .close-order-btn {
+    background:var(--red-light); color:var(--red); border:none; border-radius:10px;
+    padding:7px 14px; font-size:12px; font-weight:800; font-family:'Nunito',sans-serif;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .close-order-btn:active { transform:scale(0.96); }
+  .add-order-btn {
+    background:var(--green); color:white; border:none; border-radius:10px;
+    padding:7px 14px; font-size:12px; font-weight:800; font-family:'Nunito',sans-serif;
+    cursor:pointer; margin-right:6px;
+  }
+
+  /* ---- PAGE: ИСТОРИЯ ---- */
+  .history-card {
+    background:var(--white); border-radius:var(--radius); padding:14px 16px;
+    box-shadow:var(--shadow); margin-bottom:10px;
+  }
+  .history-header {
+    display:flex; justify-content:space-between; margin-bottom:6px;
+  }
+  .history-table { font-size:14px; font-weight:800; }
+  .history-time { font-size:11px; color:var(--text-light); font-weight:600; }
+  .history-total { font-size:15px; font-weight:900; color:var(--green-dark); margin-top:4px; }
+  .history-comm { font-size:11px; color:var(--text-light); font-weight:600; margin-top:2px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.45);
+    z-index:500; display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--white); border-radius:24px 24px 0 0;
+    width:100%; max-width:480px; padding:20px 20px 36px;
+    max-height:85vh; overflow-y:auto;
+  }
+  .modal-handle {
+    width:40px; height:4px; background:#e5e7eb; border-radius:4px;
+    margin:0 auto 16px;
+  }
+  .modal-title { font-size:18px; font-weight:900; margin-bottom:16px; }
+  .cart-items { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .cart-item {
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg); border-radius:12px; padding:10px 12px;
+  }
+  .cart-item-img { font-size:28px; width:40px; text-align:center; }
+  .cart-item-info { flex:1; }
+  .cart-item-name { font-size:12px; font-weight:700; }
+  .cart-item-price { font-size:11px; color:var(--text-light); font-weight:600; }
+  .cart-item-ctrl { display:flex; align-items:center; gap:6px; }
+  .ci-btn {
+    width:26px; height:26px; border-radius:8px; border:none;
+    background:var(--green-mid); color:var(--green-dark); font-size:16px; font-weight:800;
+    cursor:pointer; font-family:'Nunito',sans-serif; display:flex; align-items:center; justify-content:center;
+  }
+  .ci-qty { font-size:13px; font-weight:800; min-width:16px; text-align:center; }
+  .ci-del {
+    background:var(--red-light); color:var(--red); width:26px; height:26px;
+    border-radius:8px; border:none; font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-total {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-top:1px solid #f3f4f6; border-bottom:1px solid #f3f4f6;
+    margin-bottom:14px;
+  }
+  .modal-total-label { font-size:14px; font-weight:700; color:var(--text-light); }
+  .modal-total-sum { font-size:20px; font-weight:900; }
+  .table-input {
+    width:100%; padding:13px 16px; border-radius:12px; border:2px solid #e5e7eb;
+    font-size:14px; font-family:'Nunito',sans-serif; font-weight:700; outline:none;
+    margin-bottom:12px;
+  }
+  .table-input:focus { border-color:var(--green); }
+
+  /* TOAST */
+  .toast {
+    position:fixed; top:-80px; left:50%; transform:translateX(-50%);
+    background:var(--text); color:white; padding:13px 22px; border-radius:40px;
+    font-size:13px; font-weight:700; z-index:999;
+    transition:top 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    white-space:nowrap; box-shadow:0 8px 32px rgba(0,0,0,0.2);
+  }
+  .toast.show { top:20px; }
+  .toast.green { background:var(--green-dark); }
+  .toast.red { background:var(--red); }
+
+  .quick-table-btn {
+    padding:6px 12px; border-radius:20px; border:2px solid var(--green-mid);
+    background:var(--green-light); color:var(--green-dark); font-size:12px;
+    font-weight:700; font-family:'Nunito',sans-serif; cursor:pointer;
+    transition:all 0.15s;
+  }
+  .quick-table-btn:active, .quick-table-btn.selected {
+    background:var(--green); color:white; border-color:var(--green);
+  }
+
+  .empty-state {
+    text-align:center; padding:40px 20px; color:var(--text-light);
+  }
+  .empty-state .es-icon { font-size:48px; margin-bottom:10px; }
+  .empty-state p { font-size:14px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<!-- ========== LOGIN ========== -->
+<div id="loginScreen">
+  <div class="login-logo">🏔️</div>
+  <div class="login-title">Ak-Kalpak</div>
+  <div class="login-sub">Вход для персонала</div>
+  <div class="login-form">
+    <div class="input-wrap">
+      <input type="text" id="loginInput" placeholder="Имя пользователя" autocomplete="off">
+    </div>
+    <div class="input-wrap">
+      <input type="password" id="passInput" placeholder="Пароль">
+    </div>
+    <div class="login-error" id="loginError">Неверное имя или пароль</div>
+    <button class="btn-green" onclick="doLogin()">Войти</button>
+  </div>
+</div>
+
+<!-- ========== APP ========== -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">🏔️</div>
+      <div>
+        <div class="topbar-name" id="topbarName">Официант</div>
+        <div class="topbar-role" id="topbarRole">Официант · Смена активна</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="notif-badge" id="notifBadge">1</div>
+      <button class="logout-btn" onclick="doLogout()">Выйти</button>
+    </div>
+  </div>
+
+  <!-- PAGE: МЕНЮ -->
+  <div class="page active" id="pageMenu">
+    <div class="cats-wrap" style="margin-bottom:4px">
+      <button class="cat-btn active" onclick="filterCat('all',this)">Все</button>
+      <button class="cat-btn" onclick="filterCat('zavtrak',this)">Завтраки</button>
+      <button class="cat-btn" onclick="filterCat('zakuski',this)">Закуски</button>
+      <button class="cat-btn" onclick="filterCat('salaty',this)">Салаты</button>
+      <button class="cat-btn" onclick="filterCat('napitki',this)">Напитки</button>
+      <button class="cat-btn" onclick="filterCat('deserty',this)">Десерты</button>
+    </div>
+    <div class="menu-grid" id="menuGrid"></div>
+    <div style="height:80px"></div>
+  </div>
+
+  <!-- PAGE: ЗАКАЗЫ -->
+  <div class="page" id="pageOrders">
+    <div class="sec-header">
+      <div class="sec-title">Мои столы</div>
+      <button class="btn-green" style="width:auto;padding:8px 16px;font-size:13px" onclick="openNewOrderModal()">+ Новый стол</button>
+    </div>
+    <div class="orders-list" id="ordersList">
+      <div class="empty-state">
+        <div class="es-icon">🍽️</div>
+        <p>Нет активных столов</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: ИСТОРИЯ -->
+  <div class="page" id="pageHistory">
+    <div class="sec-header">
+      <div class="sec-title">История заказов</div>
+    </div>
+    <div id="historyList">
+      <div class="empty-state">
+        <div class="es-icon">📋</div>
+        <p>История пуста</p>
+      </div>
+    </div>
+    <div id="historyStats" style="display:none;background:var(--green-light);border-radius:16px;padding:16px;margin-top:16px">
+      <div style="font-size:13px;color:var(--text-light);font-weight:700">Итого за сегодня</div>
+      <div style="font-size:24px;font-weight:900;margin-top:4px" id="statTotal">0 с</div>
+      <div style="font-size:13px;color:var(--green-dark);font-weight:700;margin-top:4px" id="statComm">Моя комиссия (10%): 0 с</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('pageMenu',this)">
+      <span class="nav-icon">🍽️</span>
+      <span class="nav-label">Меню</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('pageOrders',this)" id="navOrders">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Столы</span>
+      <div class="nav-dot" id="ordersDot"></div>
+    </button>
+    <button class="nav-btn" onclick="showPage('pageHistory',this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">История</span>
+    </button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- CART BAR -->
+<div class="cart-bar-wrap" id="cartBarWrap" style="display:none">
+  <div class="cart-bar" onclick="openCartModal()">
+    <div class="cart-bar-left">
+      <div class="cart-count" id="cartCount">0</div>
+      <div class="cart-bar-text">Корзина</div>
+    </div>
+    <div class="cart-bar-price" id="cartBarPrice">0 с</div>
+  </div>
+</div>
+
+<!-- CART MODAL -->
+<div class="modal-overlay" id="cartModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🛒 Корзина</div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="modal-total">
+      <span class="modal-total-label">Итого</span>
+      <span class="modal-total-sum" id="modalTotal">0 с</span>
+    </div>
+    <div style="margin-bottom:10px">
+      <input class="table-input" id="tableInput" placeholder="Название стола (например: Тапчан 2)" type="text" autocomplete="off" style="margin-bottom:8px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="tableQuickBtns">
+        <button class="quick-table-btn" onclick="setTable('Стол 1')">Стол 1</button>
+        <button class="quick-table-btn" onclick="setTable('Стол 2')">Стол 2</button>
+        <button class="quick-table-btn" onclick="setTable('Тапчан 1')">Тапчан 1</button>
+        <button class="quick-table-btn" onclick="setTable('Тапчан 2')">Тапчан 2</button>
+        <button class="quick-table-btn" onclick="setTable('Терраса 1')">Терраса 1</button>
+        <button class="quick-table-btn" onclick="setTable('VIP зал')">VIP зал</button>
+        <button class="quick-table-btn" onclick="setTable('Барная стойка')">Барная стойка</button>
+      </div>
+    </div>
+    <button class="btn-green" onclick="submitOrder()">✅ Оформить заказ</button>
+    <button onclick="closeCartModal()" style="width:100%;margin-top:10px;padding:13px;border:none;background:none;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;color:var(--text-light);cursor:pointer">Отмена</button>
+  </div>
+</div>
+
+<!-- NEW ORDER MODAL (добавить к существующему столу) -->
+<div class="modal-overlay" id="addToOrderModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addToOrderTitle">Добавить к столу</div>
+    <div class="cart-items" id="addCartItems"></div>
+    <div class="modal-total">
+      <span class="modal-total-label">Добавляется</span>
+      <span class="modal-total-sum" id="addModalTotal">0 с</span>
+    </div>
+    <button class="btn-green" onclick="confirmAddToOrder()">✅ Добавить к заказу</button>
+    <button onclick="closeAddModal()" style="width:100%;margin-top:10px;padding:13px;border:none;background:none;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;color:var(--text-light);cursor:pointer">Отмена</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const USERS = [
+  { login:'aliya', pass:'1111', name:'Алия', role:'waiter' },
+  { login:'bakyt', pass:'2222', name:'Бакыт', role:'waiter' },
+  { login:'admin', pass:'0000', name:'Менеджер', role:'manager' },
+];
+
+const MENU = [
+  { id:1, cat:'zavtrak', emoji:'🥚', name:'Яйцо Бенедикт', desc:'Пашот, голландез, тост', price:499 },
+  { id:2, cat:'zavtrak', emoji:'🍳', name:'Омлет с томатами', desc:'Шпинат, базилик, сыр', price:360 },
+  { id:3, cat:'zavtrak', emoji:'🥞', name:'Панкейки с тирамису', desc:'Клубника, маскарпоне', price:490 },
+  { id:4, cat:'zavtrak', emoji:'🍽️', name:'Английский завтрак', desc:'Колбаски, бекон, тост', price:690 },
+  { id:5, cat:'zakuski', emoji:'🥐', name:'Брускетта с лососем', desc:'Крем-сыр, каперсы', price:250 },
+  { id:6, cat:'zakuski', emoji:'🧀', name:'Сырные крокеты', desc:'Моцарелла, маринара', price:390 },
+  { id:7, cat:'zakuski', emoji:'🍢', name:'Куриные шашлычки', desc:'Травяной маринад', price:280 },
+  { id:8, cat:'salaty', emoji:'🥗', name:'Цезарь с курицей', desc:'Романо, пармезан', price:450 },
+  { id:9, cat:'salaty', emoji:'🥙', name:'Греческий с фетой', desc:'Томаты, маслины', price:520 },
+  { id:10, cat:'napitki', emoji:'☕', name:'Капучино', desc:'Двойной эспрессо', price:120 },
+  { id:11, cat:'napitki', emoji:'🍵', name:'Зелёный чай', desc:'Сенча, 500 мл', price:90 },
+  { id:12, cat:'napitki', emoji:'🧃', name:'Свежевыжатый сок', desc:'Апельсин, 300 мл', price:150 },
+  { id:13, cat:'napitki', emoji:'🥤', name:'Лимонад манго', desc:'Домашний, с мятой', price:180 },
+  { id:14, cat:'deserty', emoji:'🍰', name:'Тирамису', desc:'Савоярди, маскарпоне', price:350 },
+  { id:15, cat:'deserty', emoji:'🧁', name:'Чизкейк Нью-Йорк', desc:'Ягодный соус', price:290 },
+];
+
+// ===== STATE =====
+let currentUser = null;
+let cart = {}; // { itemId: qty }
+let activeOrders = []; // [{id, table, waiter, items:[{item,qty}], total, time}]
+let closedOrders = [];
+let orderCounter = 1;
+let currentAddTarget = null; // order id for adding items
+
+// ===== AUTH =====
+function doLogin() {
+  const login = document.getElementById('loginInput').value.trim();
+  const pass = document.getElementById('passInput').value.trim();
+  const user = USERS.find(u => u.login === login && u.pass === pass);
+  if (!user) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  currentUser = user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  document.getElementById('topbarName').textContent = user.name;
+  document.getElementById('topbarRole').textContent =
+    (user.role === 'manager' ? 'Менеджер' : 'Официант') + ' · Смена активна';
+  renderMenu('all');
+}
+
+document.getElementById('passInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  currentUser = null;
+  cart = {};
+  activeOrders = [];
+  closedOrders = [];
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginInput').value = '';
+  document.getElementById('passInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  updateCartBar();
+}
+
+// ===== NAV =====
+function showPage(pageId, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (pageId === 'pageOrders') renderOrders();
+  if (pageId === 'pageHistory') renderHistory();
+}
+
+// ===== MENU RENDER =====
+function renderMenu(cat) {
+  const grid = document.getElementById('menuGrid');
+  const items = cat === 'all' ? MENU : MENU.filter(m => m.cat === cat);
+  grid.innerHTML = items.map(item => {
+    const qty = cart[item.id] || 0;
+    const ctrl = qty > 0
+      ? `<div class="qty-ctrl">
+           <button onclick="changeQty(${item.id},-1)">−</button>
+           <span>${qty}</span>
+           <button onclick="changeQty(${item.id},1)">+</button>
+         </div>`
+      : `<button class="add-btn" onclick="changeQty(${item.id},1)">+</button>`;
+    return `<div class="m-card">
+      <div class="m-card-img">${item.emoji}</div>
+      <div class="m-card-body">
+        <div class="m-card-price">${item.price} с</div>
+        <div class="m-card-name">${item.name}</div>
+        <div class="m-card-desc">${item.desc}</div>
+      </div>
+      ${ctrl}
+    </div>`;
+  }).join('');
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenu(cat);
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+
+  // re-render only changed card
+  const activeCat = document.querySelector('.cat-btn.active');
+  const cat = activeCat ? activeCat.textContent : 'Все';
+  const catMap = {'Все':'all','Завтраки':'zavtrak','Закуски':'zakuski','Салаты':'salaty','Напитки':'napitki','Десерты':'deserty'};
+  renderMenu(catMap[cat] || 'all');
+  updateCartBar();
+}
+
+// ===== CART =====
+function cartTotal() {
+  return Object.entries(cart).reduce((s,[id,q]) => {
+    const item = MENU.find(m => m.id == id);
+    return s + (item ? item.price * q : 0);
+  }, 0);
+}
+function cartCount() {
+  return Object.values(cart).reduce((s,q) => s+q, 0);
+}
+
+function updateCartBar() {
+  const cnt = cartCount();
+  const wrap = document.getElementById('cartBarWrap');
+  wrap.style.display = cnt > 0 ? 'block' : 'none';
+  document.getElementById('cartCount').textContent = cnt;
+  document.getElementById('cartBarPrice').textContent = cartTotal() + ' с';
+}
+
+function openCartModal() {
+  renderCartModal();
+  document.getElementById('cartModal').classList.add('open');
+}
+function closeCartModal() {
+  document.getElementById('cartModal').classList.remove('open');
+}
+
+function renderCartModal() {
+  const items = Object.entries(cart).map(([id,qty]) => {
+    const item = MENU.find(m => m.id == id);
+    return `<div class="cart-item">
+      <div class="cart-item-img">${item.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">${item.price} с × ${qty} = ${item.price*qty} с</div>
+      </div>
+      <div class="cart-item-ctrl">
+        <button class="ci-btn" onclick="changeQty(${id},-1);renderCartModal()">−</button>
+        <span class="ci-qty">${qty}</span>
+        <button class="ci-btn" onclick="changeQty(${id},1);renderCartModal()">+</button>
+        <button class="ci-del" onclick="deleteCartItem(${id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('cartItems').innerHTML = items || '<div style="text-align:center;padding:20px;color:var(--text-light);font-weight:700">Корзина пуста</div>';
+  document.getElementById('modalTotal').textContent = cartTotal() + ' с';
+}
+
+function deleteCartItem(id) {
+  delete cart[id];
+  renderCartModal();
+  updateCartBar();
+  const activeCat = document.querySelector('.cat-btn.active');
+  const catMap = {'Все':'all','Завтраки':'zavtrak','Закуски':'zakuski','Салаты':'salaty','Напитки':'napitki','Десерты':'deserty'};
+  renderMenu(catMap[activeCat?.textContent] || 'all');
+}
+
+function setTable(name) {
+  document.getElementById('tableInput').value = name;
+  document.querySelectorAll('.quick-table-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === name);
+  });
+}
+
+function submitOrder() {
+  if (cartCount() === 0) { showToast('Корзина пуста', 'red'); return; }
+  const tableVal = document.getElementById('tableInput').value.trim();
+  const tableLabel = tableVal || 'Стол (без названия)';
+
+  const orderItems = Object.entries(cart).map(([id,qty]) => ({
+    item: MENU.find(m => m.id == id), qty
+  }));
+
+  const order = {
+    id: orderCounter++,
+    table: tableLabel,
+    tableNum: tableVal,
+    waiter: currentUser.name,
+    items: orderItems,
+    total: cartTotal(),
+    time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),
+    status: 'open'
+  };
+
+  activeOrders.push(order);
+  cart = {};
+  document.getElementById('tableInput').value = '';
+  document.querySelectorAll('.quick-table-btn').forEach(b => b.classList.remove('selected'));
+  closeCartModal();
+  updateCartBar();
+  renderMenu('all');
+  document.querySelectorAll('.cat-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+
+  showToast('✅ Заказ оформлен — ' + tableLabel, 'green');
+
+  // Show dot on orders tab
+  document.getElementById('ordersDot').style.display = 'block';
+
+  // Simulate kitchen print
+  setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1200);
+}
+
+// ===== ORDERS =====
+function openNewOrderModal() {
+  // Just go to menu tab to pick items
+  showPage('pageMenu', document.querySelector('.nav-btn'));
+  showToast('Выберите блюда и нажмите на корзину');
+}
+
+function renderOrders() {
+  const list = document.getElementById('ordersList');
+  const myOrders = activeOrders.filter(o => o.waiter === currentUser.name || currentUser.role === 'manager');
+  if (myOrders.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="es-icon">🍽️</div><p>Нет активных столов</p></div>';
+    return;
+  }
+  list.innerHTML = myOrders.map(order => `
+    <div class="order-card">
+      <div class="order-card-header">
+        <div class="order-table">📍 ${order.table}</div>
+        <div class="order-status status-open">Открыт</div>
+      </div>
+      <div class="order-waiter">👤 ${order.waiter} · ${order.time}</div>
+      <div class="order-items-list">
+        ${order.items.map(r => `
+          <div class="order-item-row">
+            <span class="order-item-name">${r.item.emoji} ${r.item.name} × ${r.qty}</span>
+            <span class="order-item-price">${r.item.price * r.qty} с</span>
+          </div>`).join('')}
+      </div>
+      <div class="order-footer">
+        <div class="order-total">Итого: ${order.total} с</div>
+        <div style="display:flex;gap:6px">
+          <button class="add-order-btn" onclick="startAddToOrder(${order.id})">+ Добавить</button>
+          <button class="close-order-btn" onclick="closeOrder(${order.id})">Закрыть стол</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function closeOrder(orderId) {
+  const idx = activeOrders.findIndex(o => o.id === orderId);
+  if (idx === -1) return;
+  const order = activeOrders[idx];
+  order.status = 'closed';
+  order.closeTime = new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+  closedOrders.unshift(order);
+  activeOrders.splice(idx, 1);
+  renderOrders();
+  showToast('🖨️ Итоговый чек отправлен менеджеру', 'green');
+  if (activeOrders.filter(o => o.waiter === currentUser.name).length === 0) {
+    document.getElementById('ordersDot').style.display = 'none';
+  }
+}
+
+// ===== ADD TO EXISTING ORDER =====
+function startAddToOrder(orderId) {
+  currentAddTarget = orderId;
+  cart = {};
+  updateCartBar();
+  // Go to menu, items will go to addToOrder flow
+  showPage('pageMenu', document.querySelectorAll('.nav-btn')[0]);
+  showToast('Выберите блюда для добавления к заказу');
+  // Override submit button behaviour via flag — handled in openCartModal
+}
+
+// Override cart modal for "add to order" mode
+const _origOpenCart = openCartModal;
+function openCartModal() {
+  renderCartModal();
+  if (currentAddTarget !== null) {
+    // Show add-to-order modal instead
+    const order = activeOrders.find(o => o.id === currentAddTarget);
+    document.getElementById('addToOrderTitle').textContent = '➕ Добавить к ' + (order ? order.table : '');
+    // render add cart
+    const items = Object.entries(cart).map(([id,qty]) => {
+      const item = MENU.find(m => m.id == id);
+      return `<div class="cart-item">
+        <div class="cart-item-img">${item.emoji}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${item.price} с × ${qty}</div>
+        </div>
+        <div class="cart-item-ctrl">
+          <button class="ci-btn" onclick="changeQty(${id},-1);openCartModal()">−</button>
+          <span class="ci-qty">${qty}</span>
+          <button class="ci-btn" onclick="changeQty(${id},1);openCartModal()">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('addCartItems').innerHTML = items;
+    document.getElementById('addModalTotal').textContent = cartTotal() + ' с';
+    document.getElementById('addToOrderModal').classList.add('open');
+  } else {
+    document.getElementById('cartModal').classList.add('open');
+  }
+}
+
+function closeAddModal() {
+  document.getElementById('addToOrderModal').classList.remove('open');
+  currentAddTarget = null;
+  cart = {};
+  updateCartBar();
+  renderMenu('all');
+}
+
+function confirmAddToOrder() {
+  if (cartCount() === 0) { showToast('Корзина пуста', 'red'); return; }
+  const order = activeOrders.find(o => o.id === currentAddTarget);
+  if (!order) return;
+
+  Object.entries(cart).forEach(([id, qty]) => {
+    const item = MENU.find(m => m.id == id);
+    const existing = order.items.find(r => r.item.id == id);
+    if (existing) existing.qty += qty;
+    else order.items.push({ item, qty });
+    order.total += item.price * qty;
+  });
+
+  closeAddModal();
+  showToast('✅ Блюда добавлены к ' + order.table, 'green');
+  setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1000);
+}
+
+// ===== HISTORY =====
+function renderHistory() {
+  const myOrders = closedOrders.filter(o => o.waiter === currentUser.name || currentUser.role === 'manager');
+  const list = document.getElementById('historyList');
+  if (myOrders.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><p>История пуста</p></div>';
+    document.getElementById('historyStats').style.display = 'none';
+    return;
+  }
+  list.innerHTML = myOrders.map(o => `
+    <div class="history-card">
+      <div class="history-header">
+        <div class="history-table">📍 ${o.table}</div>
+        <div class="history-time">${o.closeTime || o.time}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:4px">
+        ${o.items.map(r => r.item.name + ' ×' + r.qty).join(', ')}
+      </div>
+      <div class="history-total">${o.total} с</div>
+      <div class="history-comm">Моя комиссия (10%): ${Math.round(o.total*0.1)} с</div>
+    </div>
+  `).join('');
+
+  const totalSum = myOrders.reduce((s,o) => s+o.total, 0);
+  document.getElementById('statTotal').textContent = totalSum + ' с';
+  document.getElementById('statComm').textContent = 'Моя комиссия (10%): ' + Math.round(totalSum*0.1) + ' с';
+  document.getElementById('historyStats').style.display = 'block';
+}
+
+// ===== TOAST =====
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Close modals on overlay click
+document.getElementById('cartModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCartModal();
+});
+document.getElementById('addToOrderModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddModal();
+});
+</script>
+</body>
+</html>

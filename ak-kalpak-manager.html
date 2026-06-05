@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ak-Kalpak — Менеджер</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#2ECC71;--green-dark:#27AE60;--green-light:#EAFAF1;--green-mid:#D5F5E3;
+    --red:#E74C3C;--red-light:#FDEDEC;--orange:#F39C12;--orange-light:#FEF9E7;
+    --blue:#3498DB;--blue-light:#EBF5FB;
+    --text:#1a1a2e;--text-light:#6b7280;--bg:#f7f8fa;--white:#fff;
+    --shadow:0 2px 12px rgba(46,204,113,0.10);--radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:80px;}
+
+  /* LOGIN */
+  #loginScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;background:linear-gradient(160deg,#eafaf1,#f7f8fa);}
+  .login-logo{width:72px;height:72px;background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 8px 24px rgba(46,204,113,.35);margin-bottom:16px;}
+  .login-title{font-size:26px;font-weight:900;margin-bottom:4px;}
+  .login-sub{font-size:14px;color:var(--text-light);font-weight:600;margin-bottom:36px;}
+  .login-form{width:100%;display:flex;flex-direction:column;gap:14px;}
+  .inp{width:100%;padding:15px 18px;border-radius:14px;border:2px solid #e5e7eb;font-size:15px;font-family:'Nunito',sans-serif;font-weight:700;outline:none;background:var(--white);transition:border-color .2s;}
+  .inp:focus{border-color:var(--green);}
+  .btn-green{width:100%;padding:16px;background:linear-gradient(135deg,var(--green),var(--green-dark));color:white;border:none;border-radius:14px;font-size:16px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;box-shadow:0 6px 20px rgba(46,204,113,.35);transition:transform .15s;}
+  .btn-green:active{transform:scale(.97);}
+  .login-error{background:var(--red-light);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;text-align:center;display:none;}
+
+  #app{display:none;flex-direction:column;min-height:100vh;}
+  .topbar{background:var(--white);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+  .topbar-logo{width:38px;height:38px;background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .topbar-name{font-size:16px;font-weight:900;}
+  .topbar-role{font-size:11px;color:var(--text-light);font-weight:600;}
+  .logout-btn{background:var(--bg);border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text-light);font-family:'Nunito',sans-serif;cursor:pointer;}
+
+  .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);display:flex;box-shadow:0 -2px 16px rgba(0,0,0,.08);z-index:100;}
+  .nav-btn{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;font-family:'Nunito',sans-serif;cursor:pointer;}
+  .nav-btn .nav-icon{font-size:20px;}
+  .nav-btn .nav-label{font-size:10px;font-weight:700;color:var(--text-light);}
+  .nav-btn.active .nav-label{color:var(--green-dark);}
+
+  .page{display:none;padding:16px;}
+  .page.active{display:block;}
+  .sec-title{font-size:20px;font-weight:900;margin-bottom:14px;}
+  .sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+
+  /* DAY PICKER */
+  .day-picker{display:flex;align-items:center;gap:8px;background:var(--white);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);margin-bottom:16px;}
+  .day-picker input[type=date]{flex:1;border:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);background:none;outline:none;cursor:pointer;}
+  .day-nav{width:32px;height:32px;border:none;background:var(--green-light);border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--green-dark);font-weight:900;}
+  .day-nav:active{background:var(--green-mid);}
+  .today-btn{padding:6px 12px;background:var(--green);color:white;border:none;border-radius:10px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;}
+
+  /* STAT CARDS */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .stat-card{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .stat-icon{font-size:26px;margin-bottom:8px;}
+  .stat-label{font-size:11px;color:var(--text-light);font-weight:700;margin-bottom:4px;}
+  .stat-val{font-size:22px;font-weight:900;}
+  .stat-sub{font-size:11px;color:var(--text-light);font-weight:600;margin-top:2px;}
+  .green-val{color:var(--green-dark);}
+  .orange-val{color:var(--orange);}
+
+  /* CHART */
+  .chart-wrap{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px;}
+  .chart-title{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:80px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bar{width:100%;background:var(--green-mid);border-radius:6px 6px 0 0;transition:height .3s;cursor:pointer;}
+  .bar.today{background:linear-gradient(180deg,var(--green),var(--green-dark));}
+  .bar.selected{background:linear-gradient(180deg,#3498DB,#2980B9);}
+  .bar-label{font-size:9px;color:var(--text-light);font-weight:700;}
+  .bar-val{font-size:9px;font-weight:800;color:var(--text-light);}
+
+  /* TOP DISHES */
+  .top-dish{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;}
+  .top-dish:last-child{border-bottom:none;}
+  .dish-rank{font-size:18px;width:28px;text-align:center;}
+  .dish-info{flex:1;}
+  .dish-name{font-size:13px;font-weight:700;}
+  .dish-qty{font-size:11px;color:var(--text-light);font-weight:600;}
+  .dish-rev{font-size:13px;font-weight:800;color:var(--green-dark);}
+
+  /* ORDERS */
+  .order-card{background:var(--white);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px;}
+  .order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .order-table{font-size:15px;font-weight:900;}
+  .badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .badge-open{background:var(--green-light);color:var(--green-dark);}
+  .badge-closed{background:#f3f4f6;color:var(--text-light);}
+  .order-meta{font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:8px;}
+  .order-rows{margin-bottom:8px;}
+  .order-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;}
+  .order-row-name{font-weight:600;}
+  .order-row-price{color:var(--text-light);font-weight:700;}
+  .order-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f3f4f6;padding-top:8px;}
+  .order-total{font-size:14px;font-weight:900;}
+  .del-btn{background:var(--red-light);color:var(--red);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;}
+  .orders-summary{background:var(--green-light);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+  .orders-summary-label{font-size:12px;font-weight:700;color:var(--green-dark);}
+  .orders-summary-val{font-size:18px;font-weight:900;color:var(--green-dark);}
+
+  /* MENU MANAGEMENT */
+  .menu-mgmt-card{background:var(--white);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+  .menu-mgmt-photo{width:56px;height:56px;border-radius:12px;object-fit:cover;background:var(--green-mid);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-light);font-weight:700;text-align:center;flex-shrink:0;overflow:hidden;}
+  .menu-mgmt-photo img{width:100%;height:100%;object-fit:cover;}
+  .menu-mgmt-info{flex:1;min-width:0;}
+  .menu-mgmt-name{font-size:14px;font-weight:800;}
+  .menu-mgmt-cat{font-size:11px;color:var(--text-light);font-weight:600;}
+  .menu-mgmt-price{font-size:14px;font-weight:900;color:var(--green-dark);margin-top:2px;}
+  .menu-mgmt-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .edit-btn{background:var(--blue-light);color:var(--blue);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;}
+  .hide-btn{background:var(--orange-light);color:var(--orange);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;}
+  .hidden-dish{opacity:.45;}
+
+  /* PHOTO UPLOAD */
+  .photo-upload-area{border:2px dashed #e5e7eb;border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:4px;position:relative;}
+  .photo-upload-area:hover{border-color:var(--green);}
+  .photo-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .photo-preview{width:100%;height:140px;object-fit:cover;border-radius:12px;display:none;margin-top:8px;}
+  .photo-placeholder{font-size:32px;margin-bottom:6px;}
+  .photo-label{font-size:13px;font-weight:700;color:var(--text-light);}
+  .photo-sub{font-size:11px;color:var(--text-light);margin-top:2px;}
+
+  /* STAFF */
+  .staff-card{background:var(--white);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px;}
+  .staff-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .staff-avatar{width:42px;height:42px;background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:white;font-weight:900;}
+  .staff-name{font-size:15px;font-weight:900;}
+  .staff-login{font-size:11px;color:var(--text-light);font-weight:600;}
+  .staff-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+  .staff-stat{background:var(--bg);border-radius:10px;padding:8px;text-align:center;}
+  .staff-stat-val{font-size:14px;font-weight:900;}
+  .staff-stat-label{font-size:9px;color:var(--text-light);font-weight:700;margin-top:2px;}
+  .staff-actions{display:flex;gap:8px;}
+  .staff-btn{flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;}
+  .staff-btn-edit{background:var(--blue-light);color:var(--blue);}
+  .staff-btn-del{background:var(--red-light);color:var(--red);}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:88vh;overflow-y:auto;}
+  .modal-handle{width:40px;height:4px;background:#e5e7eb;border-radius:4px;margin:0 auto 16px;}
+  .modal-title{font-size:18px;font-weight:900;margin-bottom:16px;}
+  .form-group{margin-bottom:12px;}
+  .form-label{font-size:12px;font-weight:800;color:var(--text-light);margin-bottom:6px;display:block;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  select.inp{appearance:none;}
+
+  .cat-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+  .cat-tag{padding:6px 14px;border-radius:20px;border:2px solid #e5e7eb;background:var(--bg);color:var(--text-light);font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .15s;}
+  .cat-tag.active{background:var(--green);color:white;border-color:var(--green);}
+
+  .toast{position:fixed;top:-80px;left:50%;transform:translateX(-50%);background:var(--text);color:white;padding:13px 22px;border-radius:40px;font-size:13px;font-weight:700;z-index:999;transition:top .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+  .toast.show{top:20px;}
+  .toast.green{background:var(--green-dark);}
+  .toast.red{background:var(--red);}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text-light);}
+  .empty-state .es-icon{font-size:48px;margin-bottom:10px;}
+  .empty-state p{font-size:14px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">🏔️</div>
+  <div class="login-title">Ak-Kalpak</div>
+  <div class="login-sub">Панель менеджера</div>
+  <div class="login-form">
+    <input class="inp" id="loginInput" placeholder="Логин" autocomplete="off">
+    <input class="inp" type="password" id="passInput" placeholder="Пароль">
+    <div class="login-error" id="loginError">Неверный логин или пароль</div>
+    <button class="btn-green" onclick="doLogin()">Войти</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="topbar-logo">🏔️</div>
+      <div>
+        <div class="topbar-name" id="topbarName">Менеджер</div>
+        <div class="topbar-role">Менеджер · Ak-Kalpak</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Выйти</button>
+  </div>
+
+  <!-- PAGE: DASHBOARD -->
+  <div class="page active" id="pageDash">
+    <div class="sec-header">
+      <div class="sec-title">📊 Статистика</div>
+    </div>
+
+    <!-- DAY PICKER -->
+    <div class="day-picker">
+      <button class="day-nav" onclick="shiftDay(-1)">‹</button>
+      <input type="date" id="dashDate" onchange="renderDash()">
+      <button class="day-nav" onclick="shiftDay(1)">›</button>
+      <button class="today-btn" onclick="goToday()">Сегодня</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Выручка</div>
+        <div class="stat-val green-val" id="statRevenue">0 с</div>
+        <div class="stat-sub" id="statRevenueOrders">0 заказов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🧾</div>
+        <div class="stat-label">Средний чек</div>
+        <div class="stat-val" id="statAvg">0 с</div>
+        <div class="stat-sub">за заказ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-label">Открытых столов</div>
+        <div class="stat-val orange-val" id="statOpen">0</div>
+        <div class="stat-sub">прямо сейчас</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label">Официантов</div>
+        <div class="stat-val" id="statWaiters">2</div>
+        <div class="stat-sub">на смене</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">
+        <span>Выручка за неделю</span>
+        <span style="font-size:11px;color:var(--text-light);font-weight:600">нажми на день</span>
+      </div>
+      <div class="bars" id="weekChart"></div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">🏆 Топ блюд за день</div>
+      <div id="topDishes">
+        <div class="empty-state" style="padding:16px"><div class="es-icon" style="font-size:28px">📭</div><p>Нет данных</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: ЗАКАЗЫ -->
+  <div class="page" id="pageOrders">
+    <div class="sec-header">
+      <div class="sec-title">Заказы</div>
+    </div>
+
+    <!-- DAY PICKER ORDERS -->
+    <div class="day-picker">
+      <button class="day-nav" onclick="shiftOrderDay(-1)">‹</button>
+      <input type="date" id="ordersDate" onchange="renderOrders()">
+      <button class="day-nav" onclick="shiftOrderDay(1)">›</button>
+      <button class="today-btn" onclick="goOrdersToday()">Сегодня</button>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="cat-tag active" onclick="filterOrders('all',this)" style="font-size:11px;padding:5px 10px">Все</button>
+      <button class="cat-tag" onclick="filterOrders('open',this)" style="font-size:11px;padding:5px 10px">Открытые</button>
+      <button class="cat-tag" onclick="filterOrders('closed',this)" style="font-size:11px;padding:5px 10px">Закрытые</button>
+    </div>
+
+    <div id="ordersSummaryWrap"></div>
+    <div id="allOrdersList"></div>
+  </div>
+
+  <!-- PAGE: МЕНЮ -->
+  <div class="page" id="pageMenu">
+    <div class="sec-header">
+      <div class="sec-title">Управление меню</div>
+      <button class="btn-green" style="width:auto;padding:8px 16px;font-size:13px" onclick="openAddDishModal()">+ Блюдо</button>
+    </div>
+    <div class="cat-tags" id="menuCatFilter">
+      <button class="cat-tag active" onclick="filterMenuMgmt('all',this)">Все</button>
+      <button class="cat-tag" onclick="filterMenuMgmt('zavtrak',this)">Завтраки</button>
+      <button class="cat-tag" onclick="filterMenuMgmt('zakuski',this)">Закуски</button>
+      <button class="cat-tag" onclick="filterMenuMgmt('salaty',this)">Салаты</button>
+      <button class="cat-tag" onclick="filterMenuMgmt('napitki',this)">Напитки</button>
+      <button class="cat-tag" onclick="filterMenuMgmt('deserty',this)">Десерты</button>
+    </div>
+    <div id="menuMgmtList"></div>
+  </div>
+
+  <!-- PAGE: ПЕРСОНАЛ -->
+  <div class="page" id="pageStaff">
+    <div class="sec-header">
+      <div class="sec-title">Персонал</div>
+      <button class="btn-green" style="width:auto;padding:8px 16px;font-size:13px" onclick="openAddStaffModal()">+ Сотрудник</button>
+    </div>
+    <div class="day-picker">
+      <button class="day-nav" onclick="shiftStaffDay(-1)">‹</button>
+      <input type="date" id="staffDate" onchange="renderStaff()">
+      <button class="day-nav" onclick="shiftStaffDay(1)">›</button>
+      <button class="today-btn" onclick="goStaffToday()">Сегодня</button>
+    </div>
+    <div id="staffList"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('pageDash',this)">
+      <span class="nav-icon">📊</span><span class="nav-label">Сводка</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('pageOrders',this)">
+      <span class="nav-icon">📋</span><span class="nav-label">Заказы</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('pageMenu',this)">
+      <span class="nav-icon">🍽️</span><span class="nav-label">Меню</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('pageStaff',this)">
+      <span class="nav-icon">👥</span><span class="nav-label">Персонал</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODAL: БЛЮДО -->
+<div class="modal-overlay" id="dishModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="dishModalTitle">Добавить блюдо</div>
+
+    <div class="form-group">
+      <label class="form-label">Фото блюда</label>
+      <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('dishPhotoInput').click()">
+        <input type="file" id="dishPhotoInput" accept="image/*" style="display:none" onchange="handlePhotoChange(event)">
+        <div id="photoPlaceholderBlock">
+          <div class="photo-placeholder">📷</div>
+          <div class="photo-label">Нажмите чтобы загрузить фото</div>
+          <div class="photo-sub">JPG, PNG · рекомендуем квадратное</div>
+        </div>
+        <img id="photoPreview" class="photo-preview" alt="Фото блюда">
+      </div>
+      <button id="removePhotoBtn" onclick="removePhoto()" style="display:none;width:100%;margin-top:6px;padding:8px;border:none;background:var(--red-light);color:var(--red);border-radius:10px;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">🗑 Удалить фото</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Название</label>
+      <input class="inp" id="dishName" placeholder="Например: Лагман">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Описание</label>
+      <input class="inp" id="dishDesc" placeholder="Краткое описание">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Цена (сом)</label>
+      <input class="inp" id="dishPrice" type="number" placeholder="350">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Категория</label>
+      <select class="inp" id="dishCat">
+        <option value="zavtrak">Завтраки</option>
+        <option value="zakuski">Закуски</option>
+        <option value="salaty">Салаты</option>
+        <option value="napitki">Напитки</option>
+        <option value="deserty">Десерты</option>
+      </select>
+    </div>
+    <button class="btn-green" onclick="saveDish()">💾 Сохранить</button>
+    <button onclick="closeDishModal()" style="width:100%;margin-top:10px;padding:13px;border:none;background:none;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;color:var(--text-light);cursor:pointer">Отмена</button>
+  </div>
+</div>
+
+<!-- MODAL: СОТРУДНИК -->
+<div class="modal-overlay" id="staffModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="staffModalTitle">Добавить сотрудника</div>
+    <div class="form-group">
+      <label class="form-label">Имя</label>
+      <input class="inp" id="staffName" placeholder="Алия">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Логин</label>
+        <input class="inp" id="staffLogin" placeholder="aliya">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <input class="inp" id="staffPass" placeholder="1234">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Роль</label>
+      <select class="inp" id="staffRole">
+        <option value="waiter">Официант</option>
+        <option value="manager">Менеджер</option>
+      </select>
+    </div>
+    <button class="btn-green" onclick="saveStaff()">💾 Сохранить</button>
+    <button onclick="closeStaffModal()" style="width:100%;margin-top:10px;padding:13px;border:none;background:none;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;color:var(--text-light);cursor:pointer">Отмена</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const MANAGER_USERS=[
+  {login:'manager',pass:'admin123',name:'Айгерим'},
+  {login:'boss',pass:'0000',name:'Менеджер'},
+];
+
+let MENU=[
+  {id:1,cat:'zavtrak',photo:null,name:'Яйцо Бенедикт',desc:'Пашот, голландез, тост',price:499,hidden:false},
+  {id:2,cat:'zavtrak',photo:null,name:'Омлет с томатами',desc:'Шпинат, базилик, сыр',price:360,hidden:false},
+  {id:3,cat:'zavtrak',photo:null,name:'Панкейки с тирамису',desc:'Клубника, маскарпоне',price:490,hidden:false},
+  {id:4,cat:'zavtrak',photo:null,name:'Английский завтрак',desc:'Колбаски, бекон, тост',price:690,hidden:false},
+  {id:5,cat:'zakuski',photo:null,name:'Брускетта с лососем',desc:'Крем-сыр, каперсы',price:250,hidden:false},
+  {id:6,cat:'zakuski',photo:null,name:'Сырные крокеты',desc:'Моцарелла, маринара',price:390,hidden:false},
+  {id:7,cat:'salaty',photo:null,name:'Цезарь с курицей',desc:'Романо, пармезан',price:450,hidden:false},
+  {id:8,cat:'napitki',photo:null,name:'Капучино',desc:'Двойной эспрессо',price:120,hidden:false},
+  {id:9,cat:'napitki',photo:null,name:'Лимонад манго',desc:'Домашний, с мятой',price:180,hidden:false},
+  {id:10,cat:'deserty',photo:null,name:'Тирамису',desc:'Савоярди, маскарпоне',price:350,hidden:false},
+];
+
+let STAFF=[
+  {id:1,name:'Алия',login:'aliya',pass:'1111',role:'waiter'},
+  {id:2,name:'Бакыт',login:'bakyt',pass:'2222',role:'waiter'},
+];
+
+// Orders with dates for day filtering
+const today=new Date();
+function dStr(d){return d.toISOString().split('T')[0];}
+function daysAgo(n){const d=new Date(today);d.setDate(d.getDate()-n);return dStr(d);}
+
+let ALL_ORDERS=[
+  {id:1,table:'Тапчан 1',waiter:'Алия',items:[{name:'Яйцо Бенедикт',qty:2,price:499},{name:'Капучино',qty:2,price:120}],total:1238,time:'09:14',date:daysAgo(0),status:'closed'},
+  {id:2,table:'Стол 3',waiter:'Бакыт',items:[{name:'Английский завтрак',qty:1,price:690},{name:'Лимонад манго',qty:1,price:180}],total:870,time:'10:05',date:daysAgo(0),status:'closed'},
+  {id:3,table:'Тапчан 2',waiter:'Алия',items:[{name:'Панкейки с тирамису',qty:2,price:490},{name:'Капучино',qty:3,price:120}],total:1340,time:'11:30',date:daysAgo(0),status:'open'},
+  {id:4,table:'VIP зал',waiter:'Бакыт',items:[{name:'Цезарь с курицей',qty:2,price:450},{name:'Тирамису',qty:2,price:350}],total:1600,time:'12:15',date:daysAgo(0),status:'open'},
+  {id:5,table:'Стол 1',waiter:'Алия',items:[{name:'Омлет с томатами',qty:2,price:360},{name:'Лимонад манго',qty:2,price:180}],total:1080,time:'13:00',date:daysAgo(1),status:'closed'},
+  {id:6,table:'Терраса',waiter:'Бакыт',items:[{name:'Тирамису',qty:3,price:350},{name:'Капучино',qty:3,price:120}],total:1410,time:'14:20',date:daysAgo(1),status:'closed'},
+  {id:7,table:'Стол 5',waiter:'Алия',items:[{name:'Яйцо Бенедикт',qty:1,price:499},{name:'Панкейки с тирамису',qty:1,price:490}],total:989,time:'09:50',date:daysAgo(2),status:'closed'},
+  {id:8,table:'Тапчан 3',waiter:'Бакыт',items:[{name:'Цезарь с курицей',qty:2,price:450},{name:'Капучино',qty:2,price:120}],total:1140,time:'11:10',date:daysAgo(2),status:'closed'},
+];
+
+// Week revenue by day (last 7 days)
+function getWeekData(){
+  const data=[];
+  for(let i=6;i>=0;i--){
+    const d=daysAgo(i);
+    const rev=ALL_ORDERS.filter(o=>o.date===d&&o.status==='closed').reduce((s,o)=>s+o.total,0);
+    data.push({date:d,rev,label:new Date(d+'T12:00:00').toLocaleDateString('ru',{weekday:'short'})});
+  }
+  return data;
+}
+
+let currentUser=null;
+let editDishId=null;
+let editStaffId=null;
+let ordersFilter='all';
+let menuFilter='all';
+let currentDishPhoto=null; // base64
+
+// ===== AUTH =====
+function doLogin(){
+  const l=document.getElementById('loginInput').value.trim();
+  const p=document.getElementById('passInput').value.trim();
+  const u=MANAGER_USERS.find(u=>u.login===l&&u.pass===p);
+  if(!u){document.getElementById('loginError').style.display='block';return;}
+  currentUser=u;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  document.getElementById('topbarName').textContent=u.name;
+  // Init dates
+  document.getElementById('dashDate').value=dStr(today);
+  document.getElementById('ordersDate').value=dStr(today);
+  document.getElementById('staffDate').value=dStr(today);
+  renderDash();
+}
+document.getElementById('passInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginInput').value='';
+  document.getElementById('passInput').value='';
+  document.getElementById('loginError').style.display='none';
+}
+
+// ===== NAV =====
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='pageDash') renderDash();
+  if(id==='pageOrders') renderOrders();
+  if(id==='pageMenu') renderMenuMgmt('all');
+  if(id==='pageStaff') renderStaff();
+}
+
+// ===== DAY NAVIGATION =====
+function shiftDay(delta){
+  const d=new Date(document.getElementById('dashDate').value+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  document.getElementById('dashDate').value=dStr(d);
+  renderDash();
+}
+function goToday(){
+  document.getElementById('dashDate').value=dStr(today);
+  renderDash();
+}
+function shiftOrderDay(delta){
+  const d=new Date(document.getElementById('ordersDate').value+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  document.getElementById('ordersDate').value=dStr(d);
+  renderOrders();
+}
+function goOrdersToday(){
+  document.getElementById('ordersDate').value=dStr(today);
+  renderOrders();
+}
+
+// ===== DASHBOARD =====
+function renderDash(){
+  const selDate=document.getElementById('dashDate').value;
+  const dayOrders=ALL_ORDERS.filter(o=>o.date===selDate);
+  const closed=dayOrders.filter(o=>o.status==='closed');
+  const open=ALL_ORDERS.filter(o=>o.status==='open'); // always current
+  const rev=closed.reduce((s,o)=>s+o.total,0);
+  const avg=closed.length?Math.round(rev/closed.length):0;
+
+  document.getElementById('statRevenue').textContent=rev.toLocaleString()+' с';
+  document.getElementById('statRevenueOrders').textContent=closed.length+' заказов';
+  document.getElementById('statAvg').textContent=avg.toLocaleString()+' с';
+  document.getElementById('statOpen').textContent=open.length;
+  document.getElementById('statWaiters').textContent=STAFF.filter(s=>s.role==='waiter').length;
+
+  // Week chart
+  const weekData=getWeekData();
+  const maxVal=Math.max(...weekData.map(d=>d.rev),1);
+  document.getElementById('weekChart').innerHTML=weekData.map(d=>`
+    <div class="bar-col" onclick="jumpToDay('${d.date}')">
+      <div class="bar-val">${d.rev?Math.round(d.rev/1000)+'к':''}</div>
+      <div class="bar ${d.date===dStr(today)?'today':''} ${d.date===selDate&&d.date!==dStr(today)?'selected':''}"
+           style="height:${Math.round((d.rev/maxVal)*70)+8}px"></div>
+      <div class="bar-label" style="${d.date===selDate?'color:var(--green-dark);font-weight:900':''}">${d.label}</div>
+    </div>`).join('');
+
+  // Top dishes
+  const dishCount={};
+  dayOrders.forEach(o=>o.items.forEach(it=>{
+    dishCount[it.name]=(dishCount[it.name]||0)+it.qty;
+  }));
+  const sorted=Object.entries(dishCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  if(!sorted.length){
+    document.getElementById('topDishes').innerHTML='<div class="empty-state" style="padding:16px 0"><div class="es-icon" style="font-size:28px">📭</div><p>Нет данных за этот день</p></div>';
+    return;
+  }
+  document.getElementById('topDishes').innerHTML=sorted.map(([name,qty],i)=>{
+    const item=MENU.find(m=>m.name===name);
+    const rev=item?item.price*qty:0;
+    return `<div class="top-dish">
+      <div class="dish-rank">${medals[i]||i+1}</div>
+      <div class="dish-info">
+        <div class="dish-name">${name}</div>
+        <div class="dish-qty">${qty} порций</div>
+      </div>
+      <div class="dish-rev">${rev.toLocaleString()} с</div>
+    </div>`;
+  }).join('');
+}
+
+function jumpToDay(date){
+  document.getElementById('dashDate').value=date;
+  renderDash();
+}
+
+// ===== ORDERS =====
+function filterOrders(f,btn){
+  ordersFilter=f;
+  document.querySelectorAll('#pageOrders .cat-tag').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders();
+}
+
+function renderOrders(){
+  const selDate=document.getElementById('ordersDate').value;
+  let orders=ALL_ORDERS.filter(o=>o.date===selDate);
+  if(ordersFilter==='open') orders=orders.filter(o=>o.status==='open');
+  if(ordersFilter==='closed') orders=orders.filter(o=>o.status==='closed');
+
+  // Summary bar
+  const closed=orders.filter(o=>o.status==='closed');
+  const dayRev=closed.reduce((s,o)=>s+o.total,0);
+  const summaryWrap=document.getElementById('ordersSummaryWrap');
+  if(orders.length){
+    summaryWrap.innerHTML=`<div class="orders-summary">
+      <div><div class="orders-summary-label">Выручка за день</div><div style="font-size:11px;color:var(--green-dark);font-weight:600">${closed.length} закрытых · ${orders.filter(o=>o.status==='open').length} открытых</div></div>
+      <div class="orders-summary-val">${dayRev.toLocaleString()} с</div>
+    </div>`;
+  } else {
+    summaryWrap.innerHTML='';
+  }
+
+  const list=document.getElementById('allOrdersList');
+  if(!orders.length){
+    list.innerHTML='<div class="empty-state"><div class="es-icon">📭</div><p>Нет заказов за этот день</p></div>';
+    return;
+  }
+  list.innerHTML=[...orders].reverse().map(o=>`
+    <div class="order-card">
+      <div class="order-head">
+        <div class="order-table">📍 ${o.table}</div>
+        <div class="badge ${o.status==='open'?'badge-open':'badge-closed'}">${o.status==='open'?'Открыт':'Закрыт'}</div>
+      </div>
+      <div class="order-meta">👤 ${o.waiter} · 🕐 ${o.time}</div>
+      <div class="order-rows">
+        ${o.items.map(it=>`<div class="order-row">
+          <span class="order-row-name">${it.name} × ${it.qty}</span>
+          <span class="order-row-price">${(it.price*it.qty).toLocaleString()} с</span>
+        </div>`).join('')}
+      </div>
+      <div class="order-foot">
+        <div class="order-total">Итого: ${o.total.toLocaleString()} с</div>
+        <button class="del-btn" onclick="deleteOrder(${o.id})">🗑 Удалить</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteOrder(id){
+  if(!confirm('Удалить заказ?')) return;
+  ALL_ORDERS=ALL_ORDERS.filter(o=>o.id!==id);
+  renderOrders();
+  showToast('Заказ удалён','red');
+}
+
+// ===== MENU MANAGEMENT =====
+function filterMenuMgmt(cat,btn){
+  menuFilter=cat;
+  document.querySelectorAll('#menuCatFilter .cat-tag').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenuMgmt(cat);
+}
+
+function renderMenuMgmt(cat){
+  const items=cat==='all'?MENU:MENU.filter(m=>m.cat===cat);
+  const catNames={zavtrak:'Завтраки',zakuski:'Закуски',salaty:'Салаты',napitki:'Напитки',deserty:'Десерты'};
+  document.getElementById('menuMgmtList').innerHTML=items.map(item=>`
+    <div class="menu-mgmt-card ${item.hidden?'hidden-dish':''}">
+      <div class="menu-mgmt-photo">
+        ${item.photo
+          ? `<img src="${item.photo}" alt="${item.name}">`
+          : `<span style="font-size:9px;color:var(--text-light);font-weight:700;padding:4px;text-align:center">Нет фото</span>`}
+      </div>
+      <div class="menu-mgmt-info">
+        <div class="menu-mgmt-name">${item.name}</div>
+        <div class="menu-mgmt-cat">${catNames[item.cat]||item.cat}</div>
+        <div class="menu-mgmt-price">${item.price} с</div>
+      </div>
+      <div class="menu-mgmt-actions">
+        <button class="edit-btn" onclick="openEditDishModal(${item.id})">✏️ Изменить</button>
+        <button class="hide-btn" onclick="toggleHideDish(${item.id})">${item.hidden?'👁 Показать':'🙈 Скрыть'}</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleHideDish(id){
+  const item=MENU.find(m=>m.id===id);
+  item.hidden=!item.hidden;
+  renderMenuMgmt(menuFilter);
+  showToast(item.hidden?'Блюдо скрыто из меню':'Блюдо снова в меню',item.hidden?'red':'green');
+}
+
+// Photo upload
+function handlePhotoChange(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    currentDishPhoto=e.target.result;
+    document.getElementById('photoPreview').src=currentDishPhoto;
+    document.getElementById('photoPreview').style.display='block';
+    document.getElementById('photoPlaceholderBlock').style.display='none';
+    document.getElementById('removePhotoBtn').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(){
+  currentDishPhoto=null;
+  document.getElementById('photoPreview').style.display='none';
+  document.getElementById('photoPreview').src='';
+  document.getElementById('photoPlaceholderBlock').style.display='block';
+  document.getElementById('removePhotoBtn').style.display='none';
+  document.getElementById('dishPhotoInput').value='';
+}
+
+function openAddDishModal(){
+  editDishId=null;
+  currentDishPhoto=null;
+  document.getElementById('dishModalTitle').textContent='Добавить блюдо';
+  document.getElementById('dishName').value='';
+  document.getElementById('dishDesc').value='';
+  document.getElementById('dishPrice').value='';
+  document.getElementById('dishCat').value='zavtrak';
+  removePhoto();
+  document.getElementById('dishModal').classList.add('open');
+}
+
+function openEditDishModal(id){
+  editDishId=id;
+  const item=MENU.find(m=>m.id===id);
+  document.getElementById('dishModalTitle').textContent='Редактировать блюдо';
+  document.getElementById('dishName').value=item.name;
+  document.getElementById('dishDesc').value=item.desc;
+  document.getElementById('dishPrice').value=item.price;
+  document.getElementById('dishCat').value=item.cat;
+  currentDishPhoto=item.photo||null;
+  if(item.photo){
+    document.getElementById('photoPreview').src=item.photo;
+    document.getElementById('photoPreview').style.display='block';
+    document.getElementById('photoPlaceholderBlock').style.display='none';
+    document.getElementById('removePhotoBtn').style.display='block';
+  } else {
+    removePhoto();
+  }
+  document.getElementById('dishModal').classList.add('open');
+}
+
+function saveDish(){
+  const name=document.getElementById('dishName').value.trim();
+  const desc=document.getElementById('dishDesc').value.trim();
+  const price=parseInt(document.getElementById('dishPrice').value);
+  const cat=document.getElementById('dishCat').value;
+  if(!name||!price){showToast('Заполните название и цену','red');return;}
+  if(editDishId){
+    const item=MENU.find(m=>m.id===editDishId);
+    Object.assign(item,{name,desc,price,cat,photo:currentDishPhoto});
+    showToast('✅ Блюдо обновлено','green');
+  } else {
+    const newId=Math.max(...MENU.map(m=>m.id))+1;
+    MENU.push({id:newId,cat,photo:currentDishPhoto,name,desc,price,hidden:false});
+    showToast('✅ Блюдо добавлено','green');
+  }
+  closeDishModal();
+  renderMenuMgmt(menuFilter);
+}
+
+function closeDishModal(){
+  document.getElementById('dishModal').classList.remove('open');
+  editDishId=null;
+}
+
+function shiftStaffDay(delta){
+  const d=new Date(document.getElementById('staffDate').value+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  document.getElementById('staffDate').value=dStr(d);
+  renderStaff();
+}
+function goStaffToday(){
+  document.getElementById('staffDate').value=dStr(today);
+  renderStaff();
+}
+
+// ===== STAFF =====
+function renderStaff(){
+  const selDate=document.getElementById('staffDate').value;
+  const dayOrders=ALL_ORDERS.filter(o=>o.date===selDate&&o.status==='closed');
+  document.getElementById('staffList').innerHTML=STAFF.map(s=>{
+    const myOrders=dayOrders.filter(o=>o.waiter===s.name);
+    const myRev=myOrders.reduce((sum,o)=>sum+o.total,0);
+    const myComm=Math.round(myRev*0.1);
+    return `<div class="staff-card">
+      <div class="staff-head">
+        <div class="staff-avatar">${s.name[0]}</div>
+        <div>
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-login">@${s.login} · ${s.role==='manager'?'Менеджер':'Официант'}</div>
+        </div>
+      </div>
+      <div class="staff-stats">
+        <div class="staff-stat">
+          <div class="staff-stat-val">${myOrders.length}</div>
+          <div class="staff-stat-label">Заказов</div>
+        </div>
+        <div class="staff-stat">
+          <div class="staff-stat-val" style="color:var(--green-dark)">${myRev.toLocaleString()} с</div>
+          <div class="staff-stat-label">Выручка</div>
+        </div>
+        <div class="staff-stat">
+          <div class="staff-stat-val" style="color:var(--orange)">${myComm.toLocaleString()} с</div>
+          <div class="staff-stat-label">10% комиссия</div>
+        </div>
+      </div>
+      <div class="staff-actions">
+        <button class="staff-btn staff-btn-edit" onclick="openEditStaffModal(${s.id})">✏️ Изменить</button>
+        <button class="staff-btn staff-btn-del" onclick="deleteStaff(${s.id})">🗑 Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddStaffModal(){
+  editStaffId=null;
+  ['staffName','staffLogin','staffPass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('staffRole').value='waiter';
+  document.getElementById('staffModalTitle').textContent='Добавить сотрудника';
+  document.getElementById('staffModal').classList.add('open');
+}
+
+function openEditStaffModal(id){
+  editStaffId=id;
+  const s=STAFF.find(s=>s.id===id);
+  document.getElementById('staffModalTitle').textContent='Редактировать сотрудника';
+  document.getElementById('staffName').value=s.name;
+  document.getElementById('staffLogin').value=s.login;
+  document.getElementById('staffPass').value=s.pass;
+  document.getElementById('staffRole').value=s.role;
+  document.getElementById('staffModal').classList.add('open');
+}
+
+function saveStaff(){
+  const name=document.getElementById('staffName').value.trim();
+  const login=document.getElementById('staffLogin').value.trim();
+  const pass=document.getElementById('staffPass').value.trim();
+  const role=document.getElementById('staffRole').value;
+  if(!name||!login||!pass){showToast('Заполните все поля','red');return;}
+  if(editStaffId){
+    Object.assign(STAFF.find(s=>s.id===editStaffId),{name,login,pass,role});
+    showToast('✅ Данные обновлены','green');
+  } else {
+    STAFF.push({id:STAFF.length?Math.max(...STAFF.map(s=>s.id))+1:1,name,login,pass,role});
+    showToast('✅ Сотрудник добавлен','green');
+  }
+  closeStaffModal();
+  renderStaff();
+}
+
+function deleteStaff(id){
+  if(!confirm('Удалить сотрудника?')) return;
+  STAFF=STAFF.filter(s=>s.id!==id);
+  renderStaff();
+  showToast('Сотрудник удалён','red');
+}
+
+function closeStaffModal(){document.getElementById('staffModal').classList.remove('open');editStaffId=null;}
+
+['dishModal','staffModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>

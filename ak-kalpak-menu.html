@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ak-Kalpak — Меню</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2ECC71;
+    --green-dark: #27AE60;
+    --green-light: #EAFAF1;
+    --green-mid: #D5F5E3;
+    --text: #1a1a2e;
+    --text-light: #6b7280;
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --shadow: 0 2px 12px rgba(46,204,113,0.10);
+    --radius: 18px;
+    --radius-sm: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 100px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--white);
+    padding: 20px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .cafe-info { display: flex; align-items: center; gap: 12px; }
+
+  .cafe-logo {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+  }
+
+  .cafe-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .cafe-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-top: 1px;
+  }
+
+  .table-badge {
+    background: var(--green-light);
+    border: 1.5px solid var(--green-mid);
+    color: var(--green-dark);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  /* CATEGORIES */
+  .cats-wrap {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 0 14px;
+    scrollbar-width: none;
+  }
+  .cats-wrap::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    flex-shrink: 0;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg);
+    color: var(--text-light);
+    border-color: #e5e7eb;
+  }
+
+  .cat-btn.active {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+    box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--text);
+    padding: 20px 20px 14px;
+    letter-spacing: -0.3px;
+  }
+
+  /* GRID */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 16px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s;
+    position: relative;
+  }
+
+  .card:active { transform: scale(0.97); }
+
+  .card-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+    background: var(--green-mid);
+  }
+
+  .card-img-placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #e8f8ef, #d5f5e3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+  }
+
+  .card-body { padding: 10px 12px 12px; }
+
+  .card-price {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+    margin-bottom: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-desc {
+    font-size: 10.5px;
+    color: var(--text-light);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* CALL BUTTON */
+  .call-btn-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    padding: 14px 20px 24px;
+    background: linear-gradient(to top, white 80%, transparent);
+    z-index: 200;
+  }
+
+  .call-btn {
+    width: 100%;
+    padding: 17px;
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    color: white;
+    border: none;
+    border-radius: 18px;
+    font-size: 16px;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 24px rgba(46,204,113,0.4);
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+
+  .call-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 3px 12px rgba(46,204,113,0.3);
+  }
+
+  .call-btn .icon { font-size: 20px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    z-index: 999;
+    transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .toast.show { top: 20px; }
+  .toast.green { background: var(--green-dark); }
+
+  /* DIVIDER */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+    margin: 8px 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="cafe-info">
+      <div class="cafe-logo">🏔️</div>
+      <div>
+        <div class="cafe-name">Ak-Kalpak</div>
+        <div class="cafe-sub">Меню · Стол №3</div>
+      </div>
+    </div>
+    <div class="table-badge">Стол №3</div>
+  </div>
+
+  <div class="cats-wrap" id="cats">
+    <button class="cat-btn active" onclick="scrollTo('zavtrak')">Завтраки</button>
+    <button class="cat-btn" onclick="scrollTo('zakuski')">Закуски</button>
+    <button class="cat-btn" onclick="scrollTo('salaty')">Салаты</button>
+    <button class="cat-btn" onclick="scrollTo('napitki')">Напитки</button>
+    <button class="cat-btn" onclick="scrollTo('deserty')">Десерты</button>
+  </div>
+</div>
+
+<!-- ЗАВТРАКИ -->
+<div id="zavtrak">
+  <div class="section-title">🍳 Завтраки</div>
+  <div class="menu-grid">
+    <div class="card">
+      <div class="card-img-placeholder">🥚</div>
+      <div class="card-body">
+        <div class="card-price">499 с</div>
+        <div class="card-name">Яйцо Бенедикт с трюфельным соусом</div>
+        <div class="card-desc">Нежное яйцо пашот, хрустящий хлеб, голландез</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🍳</div>
+      <div class="card-body">
+        <div class="card-price">360 с</div>
+        <div class="card-name">Омлет с томатами и шпинатом</div>
+        <div class="card-desc">Свежие овощи, базилик, пармезан</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🥞</div>
+      <div class="card-body">
+        <div class="card-price">490 с</div>
+        <div class="card-name">Панкейки с фисташковым тирамису</div>
+        <div class="card-desc">Тар-тар из клубники, маскарпоне</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🍽️</div>
+      <div class="card-body">
+        <div class="card-price">690 с</div>
+        <div class="card-name">Английский завтрак с колбасками</div>
+        <div class="card-desc">Бобы эдамаме, бекон, тост</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ЗАКУСКИ -->
+<div id="zakuski">
+  <div class="section-title">🥗 Закуски</div>
+  <div class="menu-grid">
+    <div class="card">
+      <div class="card-img-placeholder">🥐</div>
+      <div class="card-body">
+        <div class="card-price">250 с</div>
+        <div class="card-name">Брускетта с лососем</div>
+        <div class="card-desc">Крем-сыр, каперсы, укроп</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🫓</div>
+      <div class="card-body">
+        <div class="card-price">320 с</div>
+        <div class="card-name">Тост с авокадо и яйцом</div>
+        <div class="card-desc">Поджаренный хлеб, микрозелень</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🧀</div>
+      <div class="card-body">
+        <div class="card-price">390 с</div>
+        <div class="card-name">Сырные крокеты</div>
+        <div class="card-desc">Моцарелла, соус маринара</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🍢</div>
+      <div class="card-body">
+        <div class="card-price">280 с</div>
+        <div class="card-name">Куриные мини-шашлычки</div>
+        <div class="card-desc">Маринад из трав, соус тартар</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- САЛАТЫ -->
+<div id="salaty">
+  <div class="section-title">🥬 Салаты</div>
+  <div class="menu-grid">
+    <div class="card">
+      <div class="card-img-placeholder">🥗</div>
+      <div class="card-body">
+        <div class="card-price">450 с</div>
+        <div class="card-name">Цезарь с куриной грудкой</div>
+        <div class="card-desc">Романо, пармезан, анчоусы</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🥙</div>
+      <div class="card-body">
+        <div class="card-price">520 с</div>
+        <div class="card-name">Греческий с фетой</div>
+        <div class="card-desc">Томаты черри, огурцы, маслины</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- НАПИТКИ -->
+<div id="napitki">
+  <div class="section-title">☕ Напитки</div>
+  <div class="menu-grid">
+    <div class="card">
+      <div class="card-img-placeholder">☕</div>
+      <div class="card-body">
+        <div class="card-price">120 с</div>
+        <div class="card-name">Капучино</div>
+        <div class="card-desc">Эспрессо, молочная пенка</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🍵</div>
+      <div class="card-body">
+        <div class="card-price">90 с</div>
+        <div class="card-name">Зелёный чай</div>
+        <div class="card-desc">Китайский сенча, 500 мл</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🧃</div>
+      <div class="card-body">
+        <div class="card-price">150 с</div>
+        <div class="card-name">Свежевыжатый апельсин</div>
+        <div class="card-desc">300 мл, без сахара</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🥤</div>
+      <div class="card-body">
+        <div class="card-price">180 с</div>
+        <div class="card-name">Лимонад манго-маракуйя</div>
+        <div class="card-desc">Домашний, с мятой</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ДЕСЕРТЫ -->
+<div id="deserty">
+  <div class="section-title">🍰 Десерты</div>
+  <div class="menu-grid">
+    <div class="card">
+      <div class="card-img-placeholder">🍰</div>
+      <div class="card-body">
+        <div class="card-price">350 с</div>
+        <div class="card-name">Тирамису классический</div>
+        <div class="card-desc">Маскарпоне, савоярди, эспрессо</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-placeholder">🧁</div>
+      <div class="card-body">
+        <div class="card-price">290 с</div>
+        <div class="card-name">Чизкейк Нью-Йорк</div>
+        <div class="card-desc">Ягодный соус, карамель</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALL BUTTON -->
+<div class="call-btn-wrap">
+  <button class="call-btn" onclick="callWaiter()">
+    <span class="icon">🔔</span>
+    Позвать официанта
+  </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Официант уже идёт к вам!</div>
+
+<script>
+  // Номер стола берётся из URL: menu.html?table=Тапчан2
+  const TABLE_NAME = new URLSearchParams(window.location.search).get('table') || 'Стол №3';
+  const CAFE_NAME = 'Ak-Kalpak';
+  const SERVER_URL = 'https://ak-kalpak-production.up.railway.app'; // заменить на адрес сервера после деплоя
+  let callTimeout = null;
+
+  function scrollTo(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  async function callWaiter() {
+    const btn = document.querySelector('.call-btn');
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Вызываем официанта...';
+    btn.style.background = 'linear-gradient(135deg, #27AE60, #1e8449)';
+
+    try {
+      await fetch(`${SERVER_URL}/api/call-waiter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ table: TABLE_NAME, cafe: CAFE_NAME }),
+      });
+    } catch (e) {
+      console.log('Демо режим — сервер недоступен');
+    }
+
+    showToast('🔔 Официант вызван! Ожидайте', 'green');
+
+    if (callTimeout) clearTimeout(callTimeout);
+    callTimeout = setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="icon">🔔</span> Позвать официанта';
+      btn.style.background = 'linear-gradient(135deg, #2ECC71, #27AE60)';
+    }, 30000);
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Highlight active category on scroll
+  const sections = ['zavtrak','zakuski','salaty','napitki','deserty'];
+  const catBtns = document.querySelectorAll('.cat-btn');
+
+  window.addEventListener('scroll', () => {
+    let current = 0;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top < 120) current = i;
+    });
+    catBtns.forEach((b, i) => {
+      b.classList.toggle('active', i === current);
+    });
+  });
+</script>
+</body>
+</html>
