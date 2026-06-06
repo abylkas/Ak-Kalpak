@@ -276,189 +276,21 @@
       <div class="cafe-logo">🏔️</div>
       <div>
         <div class="cafe-name">Ak-Kalpak</div>
-        <div class="cafe-sub">Меню · Стол №3</div>
+        <div class="cafe-sub" id="tableSubtitle">Меню</div>
       </div>
     </div>
-    <div class="table-badge">Стол №3</div>
+    <div class="table-badge" id="tableBadge">Меню</div>
   </div>
-
   <div class="cats-wrap" id="cats">
-    <button class="cat-btn active" onclick="scrollTo('zavtrak')">Завтраки</button>
-    <button class="cat-btn" onclick="scrollTo('zakuski')">Закуски</button>
-    <button class="cat-btn" onclick="scrollTo('salaty')">Салаты</button>
-    <button class="cat-btn" onclick="scrollTo('napitki')">Напитки</button>
-    <button class="cat-btn" onclick="scrollTo('deserty')">Десерты</button>
+    <button class="cat-btn active">Загрузка...</button>
   </div>
 </div>
 
-<!-- ЗАВТРАКИ -->
-<div id="zavtrak">
-  <div class="section-title">🍳 Завтраки</div>
-  <div class="menu-grid">
-    <div class="card">
-      <div class="card-img-placeholder">🥚</div>
-      <div class="card-body">
-        <div class="card-price">499 с</div>
-        <div class="card-name">Яйцо Бенедикт с трюфельным соусом</div>
-        <div class="card-desc">Нежное яйцо пашот, хрустящий хлеб, голландез</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🍳</div>
-      <div class="card-body">
-        <div class="card-price">360 с</div>
-        <div class="card-name">Омлет с томатами и шпинатом</div>
-        <div class="card-desc">Свежие овощи, базилик, пармезан</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🥞</div>
-      <div class="card-body">
-        <div class="card-price">490 с</div>
-        <div class="card-name">Панкейки с фисташковым тирамису</div>
-        <div class="card-desc">Тар-тар из клубники, маскарпоне</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🍽️</div>
-      <div class="card-body">
-        <div class="card-price">690 с</div>
-        <div class="card-name">Английский завтрак с колбасками</div>
-        <div class="card-desc">Бобы эдамаме, бекон, тост</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section-divider"></div>
-
-<!-- ЗАКУСКИ -->
-<div id="zakuski">
-  <div class="section-title">🥗 Закуски</div>
-  <div class="menu-grid">
-    <div class="card">
-      <div class="card-img-placeholder">🥐</div>
-      <div class="card-body">
-        <div class="card-price">250 с</div>
-        <div class="card-name">Брускетта с лососем</div>
-        <div class="card-desc">Крем-сыр, каперсы, укроп</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🫓</div>
-      <div class="card-body">
-        <div class="card-price">320 с</div>
-        <div class="card-name">Тост с авокадо и яйцом</div>
-        <div class="card-desc">Поджаренный хлеб, микрозелень</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🧀</div>
-      <div class="card-body">
-        <div class="card-price">390 с</div>
-        <div class="card-name">Сырные крокеты</div>
-        <div class="card-desc">Моцарелла, соус маринара</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🍢</div>
-      <div class="card-body">
-        <div class="card-price">280 с</div>
-        <div class="card-name">Куриные мини-шашлычки</div>
-        <div class="card-desc">Маринад из трав, соус тартар</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section-divider"></div>
-
-<!-- САЛАТЫ -->
-<div id="salaty">
-  <div class="section-title">🥬 Салаты</div>
-  <div class="menu-grid">
-    <div class="card">
-      <div class="card-img-placeholder">🥗</div>
-      <div class="card-body">
-        <div class="card-price">450 с</div>
-        <div class="card-name">Цезарь с куриной грудкой</div>
-        <div class="card-desc">Романо, пармезан, анчоусы</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🥙</div>
-      <div class="card-body">
-        <div class="card-price">520 с</div>
-        <div class="card-name">Греческий с фетой</div>
-        <div class="card-desc">Томаты черри, огурцы, маслины</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section-divider"></div>
-
-<!-- НАПИТКИ -->
-<div id="napitki">
-  <div class="section-title">☕ Напитки</div>
-  <div class="menu-grid">
-    <div class="card">
-      <div class="card-img-placeholder">☕</div>
-      <div class="card-body">
-        <div class="card-price">120 с</div>
-        <div class="card-name">Капучино</div>
-        <div class="card-desc">Эспрессо, молочная пенка</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🍵</div>
-      <div class="card-body">
-        <div class="card-price">90 с</div>
-        <div class="card-name">Зелёный чай</div>
-        <div class="card-desc">Китайский сенча, 500 мл</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🧃</div>
-      <div class="card-body">
-        <div class="card-price">150 с</div>
-        <div class="card-name">Свежевыжатый апельсин</div>
-        <div class="card-desc">300 мл, без сахара</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🥤</div>
-      <div class="card-body">
-        <div class="card-price">180 с</div>
-        <div class="card-name">Лимонад манго-маракуйя</div>
-        <div class="card-desc">Домашний, с мятой</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section-divider"></div>
-
-<!-- ДЕСЕРТЫ -->
-<div id="deserty">
-  <div class="section-title">🍰 Десерты</div>
-  <div class="menu-grid">
-    <div class="card">
-      <div class="card-img-placeholder">🍰</div>
-      <div class="card-body">
-        <div class="card-price">350 с</div>
-        <div class="card-name">Тирамису классический</div>
-        <div class="card-desc">Маскарпоне, савоярди, эспрессо</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-img-placeholder">🧁</div>
-      <div class="card-body">
-        <div class="card-price">290 с</div>
-        <div class="card-name">Чизкейк Нью-Йорк</div>
-        <div class="card-desc">Ягодный соус, карамель</div>
-      </div>
-    </div>
+<!-- DYNAMIC MENU CONTENT -->
+<div id="menuContent" style="padding-bottom:100px">
+  <div style="text-align:center;padding:60px 20px;color:var(--text-light)">
+    <div style="font-size:40px;margin-bottom:12px">⏳</div>
+    <div style="font-size:14px;font-weight:700">Загружаем меню...</div>
   </div>
 </div>
 
@@ -474,38 +306,93 @@
 <div class="toast" id="toast">✅ Официант уже идёт к вам!</div>
 
 <script>
-  // Номер стола берётся из URL: menu.html?table=Тапчан2
-  const TABLE_NAME = new URLSearchParams(window.location.search).get('table') || 'Стол №3';
+  const TABLE_NAME = decodeURIComponent(new URLSearchParams(window.location.search).get('table') || 'Стол');
   const CAFE_NAME = 'Ak-Kalpak';
-  const SERVER_URL = 'https://ak-kalpak-production.up.railway.app'; // заменить на адрес сервера после деплоя
+  const SERVER_URL = 'https://ak-kalpak-production.up.railway.app';
   let callTimeout = null;
+  let CATEGORIES = [];
+  let DISHES = [];
 
-  function scrollTo(id) {
-    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Обновить шапку
+  document.getElementById('tableSubtitle').textContent = 'Меню · ' + TABLE_NAME;
+  document.getElementById('tableBadge').textContent = TABLE_NAME;
+
+  // Загрузить меню с сервера
+  async function loadMenu() {
+    try {
+      const data = await fetch(SERVER_URL + '/api/menu').then(r => r.json());
+      CATEGORIES = data.categories || [];
+      DISHES = data.dishes || [];
+      renderMenuPage();
+    } catch(e) {
+      document.getElementById('menuContent').innerHTML =
+        '<div style="text-align:center;padding:40px;color:var(--text-light)"><div style="font-size:32px">😕</div><p style="font-weight:700;margin-top:8px">Не удалось загрузить меню</p></div>';
+    }
+  }
+
+  function renderMenuPage() {
+    // Категории в шапке
+    const cats = document.getElementById('cats');
+    cats.innerHTML = CATEGORIES.map((c, i) =>
+      `<button class="cat-btn ${i===0?'active':''}" onclick="scrollToSection('cat-${c.id}', this)">${c.name}</button>`
+    ).join('');
+
+    // Контент
+    const content = document.getElementById('menuContent');
+    content.innerHTML = CATEGORIES.map(cat => {
+      const items = DISHES.filter(d => d.category_id === cat.id);
+      if (!items.length) return '';
+      return `
+        <div id="cat-${cat.id}">
+          <div class="section-title">${cat.name}</div>
+          <div class="menu-grid">
+            ${items.map(item => `
+              <div class="card">
+                ${item.photo_url
+                  ? `<img src="${item.photo_url}" class="card-img" alt="${item.name}">`
+                  : `<div class="card-img-placeholder">🍽️</div>`}
+                <div class="card-body">
+                  <div class="card-price">${item.price} с</div>
+                  <div class="card-name">${item.name}</div>
+                  <div class="card-desc">${item.description || ''}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <div class="section-divider"></div>`;
+    }).join('');
+
+    // Scroll highlight
+    window.addEventListener('scroll', () => {
+      CATEGORIES.forEach((c, i) => {
+        const el = document.getElementById('cat-' + c.id);
+        if (el && el.getBoundingClientRect().top < 120) {
+          document.querySelectorAll('.cat-btn').forEach((b,j) => b.classList.toggle('active', j===i));
+        }
+      });
+    });
+  }
+
+  function scrollToSection(id, btn) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    btn.classList.add('active');
   }
 
   async function callWaiter() {
     const btn = document.querySelector('.call-btn');
     if (btn.disabled) return;
-
     btn.disabled = true;
     btn.innerHTML = '⏳ Вызываем официанта...';
     btn.style.background = 'linear-gradient(135deg, #27AE60, #1e8449)';
-
     try {
       await fetch(`${SERVER_URL}/api/call-waiter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: TABLE_NAME, cafe: CAFE_NAME }),
+        body: JSON.stringify({ table_name: TABLE_NAME }),
       });
-    } catch (e) {
-      console.log('Демо режим — сервер недоступен');
-    }
-
+    } catch(e) { console.log('Ошибка соединения'); }
     showToast('🔔 Официант вызван! Ожидайте', 'green');
-
     if (callTimeout) clearTimeout(callTimeout);
     callTimeout = setTimeout(() => {
       btn.disabled = false;
@@ -522,20 +409,8 @@
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 
-  // Highlight active category on scroll
-  const sections = ['zavtrak','zakuski','salaty','napitki','deserty'];
-  const catBtns = document.querySelectorAll('.cat-btn');
-
-  window.addEventListener('scroll', () => {
-    let current = 0;
-    sections.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top < 120) current = i;
-    });
-    catBtns.forEach((b, i) => {
-      b.classList.toggle('active', i === current);
-    });
-  });
+  // Запуск
+  loadMenu();
 </script>
 </body>
 </html>
