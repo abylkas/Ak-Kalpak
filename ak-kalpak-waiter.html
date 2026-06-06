@@ -798,7 +798,10 @@ function renderOrders() {
         ${(order.items||[]).map(r => `
           <div class="order-item-row">
             <span class="order-item-name">${r.dish_name} × ${r.quantity}</span>
-            <span class="order-item-price">${r.dish_price * r.quantity} с</span>
+            <span style="display:flex;align-items:center;gap:6px">
+              <span class="order-item-price">${r.dish_price * r.quantity} с</span>
+              <button onclick="deleteOrderItem(${order.id},${r.id})" style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;">🗑</button>
+            </span>
           </div>`).join('')}
       </div>
       <div class="order-footer">
@@ -810,6 +813,23 @@ function renderOrders() {
       </div>
     </div>
   `).join('');
+}
+
+async function deleteOrderItem(orderId, itemId) {
+  if (!confirm('Убрать это блюдо из заказа?')) return;
+  try {
+    const data = await api('DELETE', `/api/orders/${orderId}/items/${itemId}`);
+    if (data.error) { showToast('Ошибка: ' + data.error, 'red'); return; }
+    // Обновить локально
+    const order = activeOrders.find(o => o.id === orderId);
+    if (order) {
+      const item = (order.items||[]).find(i => i.id === itemId);
+      if (item) order.total -= item.dish_price * item.quantity;
+      order.items = (order.items||[]).filter(i => i.id !== itemId);
+    }
+    renderOrders();
+    showToast('✅ Блюдо убрано из заказа', 'green');
+  } catch(e) { showToast('Ошибка соединения', 'red'); }
 }
 
 async function closeOrder(orderId) {
