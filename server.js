@@ -264,6 +264,34 @@ app.delete('/api/orders/:id', auth, managerOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Удалить позицию из заказа
+app.delete('/api/orders/:orderId/items/:itemId', auth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM order_items WHERE id=$1 AND order_id=$2',
+      [req.params.itemId, req.params.orderId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Позиция не найдена' });
+    const item = rows[0];
+
+    if (req.user.role !== 'manager') {
+      const { rows: orderRows } = await pool.query(
+        'SELECT * FROM orders WHERE id=$1 AND waiter_id=$2',
+        [req.params.orderId, req.user.id]
+      );
+      if (!orderRows.length) return res.status(403).json({ error: 'Нет доступа' });
+    }
+
+    await pool.query('DELETE FROM order_items WHERE id=$1', [req.params.itemId]);
+    await pool.query(
+      'UPDATE orders SET total = total - $1 WHERE id=$2',
+      [item.dish_price * item.quantity, req.params.orderId]
+    );
+    io.emit('order_updated', { id: parseInt(req.params.orderId) });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ---- ВЫЗОВ ОФИЦИАНТА ----
 
 app.post('/api/call-waiter', async (req, res) => {
