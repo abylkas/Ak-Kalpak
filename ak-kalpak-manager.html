@@ -538,12 +538,12 @@ async function renderDash(){
     // Week chart
     const weekData = stats.week || [];
     const maxVal = Math.max(...weekData.map(d=>parseInt(d.revenue)),1);
-    const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    const days = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
     document.getElementById('weekChart').innerHTML = weekData.map(d=>{
       const date = d.day;
       const rev = parseInt(d.revenue);
       const dayIdx = new Date(date+'T12:00:00').getDay();
-      const label = days[dayIdx===0?6:dayIdx-1];
+      const label = days[dayIdx];
       return `<div class="bar-col" onclick="jumpToDay('${date}')">
         <div class="bar-val">${rev?Math.round(rev/1000)+'к':''}</div>
         <div class="bar ${date===dStr(today)?'today':''} ${date===selDate&&date!==dStr(today)?'selected':''}"
@@ -625,14 +625,30 @@ function renderOrdersList(){
       <div class="order-rows">
         ${(o.items||[]).map(it=>`<div class="order-row">
           <span class="order-row-name">${it.dish_name} × ${it.quantity}</span>
-          <span class="order-row-price">${(it.dish_price*it.quantity).toLocaleString()} с</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="order-row-price">${(it.dish_price*it.quantity).toLocaleString()} с</span>
+            ${o.status==='open'?`<button onclick="deleteOrderItem(${o.id},${it.id})" style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;">🗑</button>`:''}
+          </span>
         </div>`).join('')}
       </div>
       <div class="order-foot">
         <div class="order-total">Итого: ${o.total.toLocaleString()} с</div>
-        <button class="del-btn" onclick="deleteOrder(${o.id})">🗑 Удалить</button>
+        <button class="del-btn" onclick="deleteOrder(${o.id})">🗑 Удалить заказ</button>
       </div>
     </div>`).join('');
+}
+
+async function deleteOrderItem(orderId, itemId){
+  if(!confirm('Убрать это блюдо из заказа?')) return;
+  await mApi('DELETE', `/api/orders/${orderId}/items/${itemId}`);
+  const order = allOrdersCache.find(o=>o.id===orderId);
+  if(order){
+    const item=(order.items||[]).find(i=>i.id===itemId);
+    if(item) order.total -= item.dish_price * item.quantity;
+    order.items=(order.items||[]).filter(i=>i.id!==itemId);
+  }
+  renderOrdersList();
+  showToast('✅ Блюдо убрано из заказа','green');
 }
 
 async function deleteOrder(id){
