@@ -355,11 +355,11 @@
     <div class="form-group">
       <label class="form-label">Категория</label>
       <select class="inp" id="dishCat">
-        <option value="zavtrak">Завтраки</option>
-        <option value="zakuski">Закуски</option>
-        <option value="salaty">Салаты</option>
-        <option value="napitki">Напитки</option>
-        <option value="deserty">Десерты</option>
+        <option value="1">Завтраки</option>
+        <option value="2">Закуски</option>
+        <option value="3">Салаты</option>
+        <option value="4">Напитки</option>
+        <option value="5">Десерты</option>
       </select>
     </div>
     <button class="btn-green" onclick="saveDish()">💾 Сохранить</button>
@@ -402,55 +402,9 @@
 
 <script>
 // ===== DATA =====
-const MANAGER_USERS=[
-  {login:'manager',pass:'admin123',name:'Айгерим'},
-  {login:'boss',pass:'0000',name:'Менеджер'},
-];
-
-let MENU=[
-  {id:1,cat:'zavtrak',photo:null,name:'Яйцо Бенедикт',desc:'Пашот, голландез, тост',price:499,hidden:false},
-  {id:2,cat:'zavtrak',photo:null,name:'Омлет с томатами',desc:'Шпинат, базилик, сыр',price:360,hidden:false},
-  {id:3,cat:'zavtrak',photo:null,name:'Панкейки с тирамису',desc:'Клубника, маскарпоне',price:490,hidden:false},
-  {id:4,cat:'zavtrak',photo:null,name:'Английский завтрак',desc:'Колбаски, бекон, тост',price:690,hidden:false},
-  {id:5,cat:'zakuski',photo:null,name:'Брускетта с лососем',desc:'Крем-сыр, каперсы',price:250,hidden:false},
-  {id:6,cat:'zakuski',photo:null,name:'Сырные крокеты',desc:'Моцарелла, маринара',price:390,hidden:false},
-  {id:7,cat:'salaty',photo:null,name:'Цезарь с курицей',desc:'Романо, пармезан',price:450,hidden:false},
-  {id:8,cat:'napitki',photo:null,name:'Капучино',desc:'Двойной эспрессо',price:120,hidden:false},
-  {id:9,cat:'napitki',photo:null,name:'Лимонад манго',desc:'Домашний, с мятой',price:180,hidden:false},
-  {id:10,cat:'deserty',photo:null,name:'Тирамису',desc:'Савоярди, маскарпоне',price:350,hidden:false},
-];
-
-let STAFF=[
-  {id:1,name:'Алия',login:'aliya',pass:'1111',role:'waiter'},
-  {id:2,name:'Бакыт',login:'bakyt',pass:'2222',role:'waiter'},
-];
-
-// Orders with dates for day filtering
 const today=new Date();
 function dStr(d){return d.toISOString().split('T')[0];}
 function daysAgo(n){const d=new Date(today);d.setDate(d.getDate()-n);return dStr(d);}
-
-let ALL_ORDERS=[
-  {id:1,table:'Тапчан 1',waiter:'Алия',items:[{name:'Яйцо Бенедикт',qty:2,price:499},{name:'Капучино',qty:2,price:120}],total:1238,time:'09:14',date:daysAgo(0),status:'closed'},
-  {id:2,table:'Стол 3',waiter:'Бакыт',items:[{name:'Английский завтрак',qty:1,price:690},{name:'Лимонад манго',qty:1,price:180}],total:870,time:'10:05',date:daysAgo(0),status:'closed'},
-  {id:3,table:'Тапчан 2',waiter:'Алия',items:[{name:'Панкейки с тирамису',qty:2,price:490},{name:'Капучино',qty:3,price:120}],total:1340,time:'11:30',date:daysAgo(0),status:'open'},
-  {id:4,table:'VIP зал',waiter:'Бакыт',items:[{name:'Цезарь с курицей',qty:2,price:450},{name:'Тирамису',qty:2,price:350}],total:1600,time:'12:15',date:daysAgo(0),status:'open'},
-  {id:5,table:'Стол 1',waiter:'Алия',items:[{name:'Омлет с томатами',qty:2,price:360},{name:'Лимонад манго',qty:2,price:180}],total:1080,time:'13:00',date:daysAgo(1),status:'closed'},
-  {id:6,table:'Терраса',waiter:'Бакыт',items:[{name:'Тирамису',qty:3,price:350},{name:'Капучино',qty:3,price:120}],total:1410,time:'14:20',date:daysAgo(1),status:'closed'},
-  {id:7,table:'Стол 5',waiter:'Алия',items:[{name:'Яйцо Бенедикт',qty:1,price:499},{name:'Панкейки с тирамису',qty:1,price:490}],total:989,time:'09:50',date:daysAgo(2),status:'closed'},
-  {id:8,table:'Тапчан 3',waiter:'Бакыт',items:[{name:'Цезарь с курицей',qty:2,price:450},{name:'Капучино',qty:2,price:120}],total:1140,time:'11:10',date:daysAgo(2),status:'closed'},
-];
-
-// Week revenue by day (last 7 days)
-function getWeekData(){
-  const data=[];
-  for(let i=6;i>=0;i--){
-    const d=daysAgo(i);
-    const rev=ALL_ORDERS.filter(o=>o.date===d&&o.status==='closed').reduce((s,o)=>s+o.total,0);
-    data.push({date:d,rev,label:new Date(d+'T12:00:00').toLocaleDateString('ru',{weekday:'short'})});
-  }
-  return data;
-}
 
 let currentUser=null;
 let editDishId=null;
@@ -463,18 +417,33 @@ let currentDishPhoto=null; // base64
 function doLogin(){
   const l=document.getElementById('loginInput').value.trim();
   const p=document.getElementById('passInput').value.trim();
-  const u=MANAGER_USERS.find(u=>u.login===l&&u.pass===p);
-  if(!u){document.getElementById('loginError').style.display='block';return;}
-  currentUser=u;
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('app').style.flexDirection='column';
-  document.getElementById('topbarName').textContent=u.name;
-  // Init dates
-  document.getElementById('dashDate').value=dStr(today);
-  document.getElementById('ordersDate').value=dStr(today);
-  document.getElementById('staffDate').value=dStr(today);
-  renderDash();
+  const btn=document.querySelector('.btn-green');
+  btn.textContent='Входим...'; btn.disabled=true;
+  mApi('POST','/api/auth/login',{login:l,password:p}).then(data=>{
+    if(data.error){
+      document.getElementById('loginError').style.display='block';
+      btn.textContent='Войти'; btn.disabled=false; return;
+    }
+    if(data.user.role!=='manager'){
+      document.getElementById('loginError').textContent='Нет доступа менеджера';
+      document.getElementById('loginError').style.display='block';
+      btn.textContent='Войти'; btn.disabled=false; return;
+    }
+    managerToken=data.token;
+    currentUser=data.user;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('app').style.flexDirection='column';
+    document.getElementById('topbarName').textContent=data.user.name;
+    document.getElementById('dashDate').value=dStr(today);
+    document.getElementById('ordersDate').value=dStr(today);
+    document.getElementById('staffDate').value=dStr(today);
+    renderDash();
+  }).catch(()=>{
+    document.getElementById('loginError').textContent='Ошибка соединения';
+    document.getElementById('loginError').style.display='block';
+    btn.textContent='Войти'; btn.disabled=false;
+  });
 }
 document.getElementById('passInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
@@ -487,6 +456,18 @@ function doLogout(){
   document.getElementById('loginError').style.display='none';
 }
 
+// ===== API =====
+const SERVER_URL = 'https://ak-kalpak-production.up.railway.app';
+let managerToken = null;
+
+async function mApi(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (managerToken) opts.headers['Authorization'] = 'Bearer ' + managerToken;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(SERVER_URL + path, opts);
+  return res.json();
+}
+
 // ===== NAV =====
 function showPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -495,8 +476,8 @@ function showPage(id,btn){
   btn.classList.add('active');
   if(id==='pageDash') renderDash();
   if(id==='pageOrders') renderOrders();
-  if(id==='pageMenu') renderMenuMgmt('all');
-  if(id==='pageStaff') renderStaff();
+  if(id==='pageMenu') loadMenuMgmt();
+  if(id==='pageStaff') loadStaff();
 }
 
 // ===== DAY NAVIGATION =====
@@ -522,104 +503,107 @@ function goOrdersToday(){
 }
 
 // ===== DASHBOARD =====
-function renderDash(){
+async function renderDash(){
   const selDate=document.getElementById('dashDate').value;
-  const dayOrders=ALL_ORDERS.filter(o=>o.date===selDate);
-  const closed=dayOrders.filter(o=>o.status==='closed');
-  const open=ALL_ORDERS.filter(o=>o.status==='open'); // always current
-  const rev=closed.reduce((s,o)=>s+o.total,0);
-  const avg=closed.length?Math.round(rev/closed.length):0;
+  try {
+    const stats = await mApi('GET', `/api/stats?date=${selDate}`);
+    document.getElementById('statRevenue').textContent=(stats.revenue||0).toLocaleString()+' с';
+    document.getElementById('statRevenueOrders').textContent=(stats.orders||0)+' заказов';
+    document.getElementById('statAvg').textContent=(stats.avg||0).toLocaleString()+' с';
+    document.getElementById('statOpen').textContent=stats.open_tables||0;
+    document.getElementById('statWaiters').textContent=STAFF.filter(s=>s.role==='waiter').length;
 
-  document.getElementById('statRevenue').textContent=rev.toLocaleString()+' с';
-  document.getElementById('statRevenueOrders').textContent=closed.length+' заказов';
-  document.getElementById('statAvg').textContent=avg.toLocaleString()+' с';
-  document.getElementById('statOpen').textContent=open.length;
-  document.getElementById('statWaiters').textContent=STAFF.filter(s=>s.role==='waiter').length;
+    // Week chart
+    const weekData = stats.week || [];
+    const maxVal = Math.max(...weekData.map(d=>parseInt(d.revenue)),1);
+    const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    document.getElementById('weekChart').innerHTML = weekData.map(d=>{
+      const date = d.day;
+      const rev = parseInt(d.revenue);
+      const dayIdx = new Date(date+'T12:00:00').getDay();
+      const label = days[dayIdx===0?6:dayIdx-1];
+      return `<div class="bar-col" onclick="jumpToDay('${date}')">
+        <div class="bar-val">${rev?Math.round(rev/1000)+'к':''}</div>
+        <div class="bar ${date===dStr(today)?'today':''} ${date===selDate&&date!==dStr(today)?'selected':''}"
+             style="height:${Math.round((rev/maxVal)*70)+8}px"></div>
+        <div class="bar-label" style="${date===selDate?'color:var(--green-dark);font-weight:900':''}">${label}</div>
+      </div>`;
+    }).join('');
 
-  // Week chart
-  const weekData=getWeekData();
-  const maxVal=Math.max(...weekData.map(d=>d.rev),1);
-  document.getElementById('weekChart').innerHTML=weekData.map(d=>`
-    <div class="bar-col" onclick="jumpToDay('${d.date}')">
-      <div class="bar-val">${d.rev?Math.round(d.rev/1000)+'к':''}</div>
-      <div class="bar ${d.date===dStr(today)?'today':''} ${d.date===selDate&&d.date!==dStr(today)?'selected':''}"
-           style="height:${Math.round((d.rev/maxVal)*70)+8}px"></div>
-      <div class="bar-label" style="${d.date===selDate?'color:var(--green-dark);font-weight:900':''}">${d.label}</div>
-    </div>`).join('');
-
-  // Top dishes
-  const dishCount={};
-  dayOrders.forEach(o=>o.items.forEach(it=>{
-    dishCount[it.name]=(dishCount[it.name]||0)+it.qty;
-  }));
-  const sorted=Object.entries(dishCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-  if(!sorted.length){
-    document.getElementById('topDishes').innerHTML='<div class="empty-state" style="padding:16px 0"><div class="es-icon" style="font-size:28px">📭</div><p>Нет данных за этот день</p></div>';
-    return;
+    // Top dishes
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+    const topDishes = stats.top_dishes || [];
+    if(!topDishes.length){
+      document.getElementById('topDishes').innerHTML='<div class="empty-state" style="padding:16px 0"><div class="es-icon" style="font-size:28px">📭</div><p>Нет данных за этот день</p></div>';
+      return;
+    }
+    document.getElementById('topDishes').innerHTML=topDishes.map((d,i)=>`
+      <div class="top-dish">
+        <div class="dish-rank">${medals[i]||i+1}</div>
+        <div class="dish-info">
+          <div class="dish-name">${d.dish_name}</div>
+          <div class="dish-qty">${d.qty} порций</div>
+        </div>
+        <div class="dish-rev">${parseInt(d.revenue).toLocaleString()} с</div>
+      </div>`).join('');
+  } catch(e) {
+    console.error('Stats error:', e);
   }
-  document.getElementById('topDishes').innerHTML=sorted.map(([name,qty],i)=>{
-    const item=MENU.find(m=>m.name===name);
-    const rev=item?item.price*qty:0;
-    return `<div class="top-dish">
-      <div class="dish-rank">${medals[i]||i+1}</div>
-      <div class="dish-info">
-        <div class="dish-name">${name}</div>
-        <div class="dish-qty">${qty} порций</div>
-      </div>
-      <div class="dish-rev">${rev.toLocaleString()} с</div>
-    </div>`;
-  }).join('');
 }
-
 function jumpToDay(date){
   document.getElementById('dashDate').value=date;
   renderDash();
 }
 
 // ===== ORDERS =====
+let allOrdersCache = [];
+
 function filterOrders(f,btn){
   ordersFilter=f;
   document.querySelectorAll('#pageOrders .cat-tag').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  renderOrders();
+  renderOrdersList();
 }
 
-function renderOrders(){
+async function renderOrders(){
   const selDate=document.getElementById('ordersDate').value;
-  let orders=ALL_ORDERS.filter(o=>o.date===selDate);
+  try {
+    allOrdersCache = await mApi('GET', `/api/orders?date=${selDate}`);
+    renderOrdersList();
+  } catch(e) { console.error(e); }
+}
+
+function renderOrdersList(){
+  let orders = allOrdersCache || [];
   if(ordersFilter==='open') orders=orders.filter(o=>o.status==='open');
   if(ordersFilter==='closed') orders=orders.filter(o=>o.status==='closed');
 
-  // Summary bar
-  const closed=orders.filter(o=>o.status==='closed');
+  const closed=allOrdersCache.filter(o=>o.status==='closed');
   const dayRev=closed.reduce((s,o)=>s+o.total,0);
   const summaryWrap=document.getElementById('ordersSummaryWrap');
   if(orders.length){
     summaryWrap.innerHTML=`<div class="orders-summary">
-      <div><div class="orders-summary-label">Выручка за день</div><div style="font-size:11px;color:var(--green-dark);font-weight:600">${closed.length} закрытых · ${orders.filter(o=>o.status==='open').length} открытых</div></div>
+      <div><div class="orders-summary-label">Выручка за день</div><div style="font-size:11px;color:var(--green-dark);font-weight:600">${closed.length} закрытых · ${allOrdersCache.filter(o=>o.status==='open').length} открытых</div></div>
       <div class="orders-summary-val">${dayRev.toLocaleString()} с</div>
     </div>`;
-  } else {
-    summaryWrap.innerHTML='';
-  }
+  } else { summaryWrap.innerHTML=''; }
 
   const list=document.getElementById('allOrdersList');
   if(!orders.length){
     list.innerHTML='<div class="empty-state"><div class="es-icon">📭</div><p>Нет заказов за этот день</p></div>';
     return;
   }
-  list.innerHTML=[...orders].reverse().map(o=>`
+  list.innerHTML=orders.map(o=>`
     <div class="order-card">
       <div class="order-head">
-        <div class="order-table">📍 ${o.table}</div>
+        <div class="order-table">📍 ${o.table_name}</div>
         <div class="badge ${o.status==='open'?'badge-open':'badge-closed'}">${o.status==='open'?'Открыт':'Закрыт'}</div>
       </div>
-      <div class="order-meta">👤 ${o.waiter} · 🕐 ${o.time}</div>
+      <div class="order-meta">👤 ${o.waiter_name||''} · 🕐 ${new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</div>
       <div class="order-rows">
-        ${o.items.map(it=>`<div class="order-row">
-          <span class="order-row-name">${it.name} × ${it.qty}</span>
-          <span class="order-row-price">${(it.price*it.qty).toLocaleString()} с</span>
+        ${(o.items||[]).map(it=>`<div class="order-row">
+          <span class="order-row-name">${it.dish_name} × ${it.quantity}</span>
+          <span class="order-row-price">${(it.dish_price*it.quantity).toLocaleString()} с</span>
         </div>`).join('')}
       </div>
       <div class="order-foot">
@@ -628,15 +612,21 @@ function renderOrders(){
       </div>
     </div>`).join('');
 }
+      </div>
+    </div>`).join('');
+}
 
-function deleteOrder(id){
+async function deleteOrder(id){
   if(!confirm('Удалить заказ?')) return;
-  ALL_ORDERS=ALL_ORDERS.filter(o=>o.id!==id);
-  renderOrders();
+  await mApi('DELETE', `/api/orders/${id}`);
+  allOrdersCache = allOrdersCache.filter(o=>o.id!==id);
+  renderOrdersList();
   showToast('Заказ удалён','red');
 }
 
 // ===== MENU MANAGEMENT =====
+let MENU_MGMT = [];
+
 function filterMenuMgmt(cat,btn){
   menuFilter=cat;
   document.querySelectorAll('#menuCatFilter .cat-tag').forEach(b=>b.classList.remove('active'));
@@ -644,33 +634,44 @@ function filterMenuMgmt(cat,btn){
   renderMenuMgmt(cat);
 }
 
+async function loadMenuMgmt(){
+  try {
+    MENU_MGMT = await mApi('GET', '/api/manager/menu');
+    renderMenuMgmt('all');
+  } catch(e) { console.error(e); }
+}
+
 function renderMenuMgmt(cat){
-  const items=cat==='all'?MENU:MENU.filter(m=>m.cat===cat);
-  const catNames={zavtrak:'Завтраки',zakuski:'Закуски',salaty:'Салаты',napitki:'Напитки',deserty:'Десерты'};
+  const items = cat==='all' ? MENU_MGMT : MENU_MGMT.filter(m=>m.category_id==cat);
   document.getElementById('menuMgmtList').innerHTML=items.map(item=>`
-    <div class="menu-mgmt-card ${item.hidden?'hidden-dish':''}">
+    <div class="menu-mgmt-card ${item.is_hidden?'hidden-dish':''}">
       <div class="menu-mgmt-photo">
-        ${item.photo
-          ? `<img src="${item.photo}" alt="${item.name}">`
+        ${item.photo_url
+          ? `<img src="${item.photo_url}" alt="${item.name}">`
           : `<span style="font-size:9px;color:var(--text-light);font-weight:700;padding:4px;text-align:center">Нет фото</span>`}
       </div>
       <div class="menu-mgmt-info">
         <div class="menu-mgmt-name">${item.name}</div>
-        <div class="menu-mgmt-cat">${catNames[item.cat]||item.cat}</div>
+        <div class="menu-mgmt-cat">${item.category_name||''}</div>
         <div class="menu-mgmt-price">${item.price} с</div>
       </div>
       <div class="menu-mgmt-actions">
         <button class="edit-btn" onclick="openEditDishModal(${item.id})">✏️ Изменить</button>
-        <button class="hide-btn" onclick="toggleHideDish(${item.id})">${item.hidden?'👁 Показать':'🙈 Скрыть'}</button>
+        <button class="hide-btn" onclick="toggleHideDish(${item.id})">${item.is_hidden?'👁 Показать':'🙈 Скрыть'}</button>
       </div>
     </div>`).join('');
 }
 
-function toggleHideDish(id){
-  const item=MENU.find(m=>m.id===id);
-  item.hidden=!item.hidden;
+async function toggleHideDish(id){
+  const item=MENU_MGMT.find(m=>m.id===id);
+  const newHidden = !item.is_hidden;
+  await mApi('PUT', `/api/manager/dishes/${id}`, {
+    name: item.name, description: item.description, price: item.price,
+    category_id: item.category_id, photo_url: item.photo_url, is_hidden: newHidden
+  });
+  item.is_hidden = newHidden;
   renderMenuMgmt(menuFilter);
-  showToast(item.hidden?'Блюдо скрыто из меню':'Блюдо снова в меню',item.hidden?'red':'green');
+  showToast(newHidden?'Блюдо скрыто из меню':'Блюдо снова в меню', newHidden?'red':'green');
 }
 
 // Photo upload
@@ -711,41 +712,39 @@ function openAddDishModal(){
 
 function openEditDishModal(id){
   editDishId=id;
-  const item=MENU.find(m=>m.id===id);
+  const item=MENU_MGMT.find(m=>m.id===id);
   document.getElementById('dishModalTitle').textContent='Редактировать блюдо';
   document.getElementById('dishName').value=item.name;
-  document.getElementById('dishDesc').value=item.desc;
+  document.getElementById('dishDesc').value=item.description||'';
   document.getElementById('dishPrice').value=item.price;
-  document.getElementById('dishCat').value=item.cat;
-  currentDishPhoto=item.photo||null;
-  if(item.photo){
-    document.getElementById('photoPreview').src=item.photo;
+  document.getElementById('dishCat').value=item.category_id;
+  currentDishPhoto=item.photo_url||null;
+  if(item.photo_url){
+    document.getElementById('photoPreview').src=item.photo_url;
     document.getElementById('photoPreview').style.display='block';
     document.getElementById('photoPlaceholderBlock').style.display='none';
     document.getElementById('removePhotoBtn').style.display='block';
-  } else {
-    removePhoto();
-  }
+  } else { removePhoto(); }
   document.getElementById('dishModal').classList.add('open');
 }
 
-function saveDish(){
+async function saveDish(){
   const name=document.getElementById('dishName').value.trim();
-  const desc=document.getElementById('dishDesc').value.trim();
+  const description=document.getElementById('dishDesc').value.trim();
   const price=parseInt(document.getElementById('dishPrice').value);
-  const cat=document.getElementById('dishCat').value;
+  const category_id=document.getElementById('dishCat').value;
   if(!name||!price){showToast('Заполните название и цену','red');return;}
-  if(editDishId){
-    const item=MENU.find(m=>m.id===editDishId);
-    Object.assign(item,{name,desc,price,cat,photo:currentDishPhoto});
-    showToast('✅ Блюдо обновлено','green');
-  } else {
-    const newId=Math.max(...MENU.map(m=>m.id))+1;
-    MENU.push({id:newId,cat,photo:currentDishPhoto,name,desc,price,hidden:false});
-    showToast('✅ Блюдо добавлено','green');
-  }
-  closeDishModal();
-  renderMenuMgmt(menuFilter);
+  try {
+    if(editDishId){
+      await mApi('PUT',`/api/manager/dishes/${editDishId}`,{name,description,price,category_id,photo_base64:currentDishPhoto,is_hidden:false});
+      showToast('✅ Блюдо обновлено','green');
+    } else {
+      await mApi('POST','/api/manager/dishes',{name,description,price,category_id,photo_base64:currentDishPhoto});
+      showToast('✅ Блюдо добавлено','green');
+    }
+    closeDishModal();
+    await loadMenuMgmt();
+  } catch(e){ showToast('Ошибка сохранения','red'); }
 }
 
 function closeDishModal(){
@@ -757,50 +756,50 @@ function shiftStaffDay(delta){
   const d=new Date(document.getElementById('staffDate').value+'T12:00:00');
   d.setDate(d.getDate()+delta);
   document.getElementById('staffDate').value=dStr(d);
-  renderStaff();
+  loadStaff();
 }
 function goStaffToday(){
   document.getElementById('staffDate').value=dStr(today);
-  renderStaff();
+  loadStaff();
 }
 
 // ===== STAFF =====
-function renderStaff(){
-  const selDate=document.getElementById('staffDate').value;
-  const dayOrders=ALL_ORDERS.filter(o=>o.date===selDate&&o.status==='closed');
-  document.getElementById('staffList').innerHTML=STAFF.map(s=>{
-    const myOrders=dayOrders.filter(o=>o.waiter===s.name);
-    const myRev=myOrders.reduce((sum,o)=>sum+o.total,0);
-    const myComm=Math.round(myRev*0.1);
-    return `<div class="staff-card">
-      <div class="staff-head">
-        <div class="staff-avatar">${s.name[0]}</div>
-        <div>
-          <div class="staff-name">${s.name}</div>
-          <div class="staff-login">@${s.login} · ${s.role==='manager'?'Менеджер':'Официант'}</div>
+let STAFF = [];
+
+async function loadStaff(){
+  try {
+    STAFF = await mApi('GET', '/api/staff');
+    const selDate=document.getElementById('staffDate').value;
+    const dayOrders = await mApi('GET', `/api/orders?date=${selDate}`);
+    const closed = Array.isArray(dayOrders) ? dayOrders.filter(o=>o.status==='closed') : [];
+    document.getElementById('staffList').innerHTML=STAFF.map(s=>{
+      const myOrders=closed.filter(o=>o.waiter_name===s.name);
+      const myRev=myOrders.reduce((sum,o)=>sum+o.total,0);
+      const myComm=Math.round(myRev*0.1);
+      return `<div class="staff-card">
+        <div class="staff-head">
+          <div class="staff-avatar">${s.name[0]}</div>
+          <div>
+            <div class="staff-name">${s.name}</div>
+            <div class="staff-login">@${s.login} · ${s.role==='manager'?'Менеджер':'Официант'}</div>
+          </div>
         </div>
-      </div>
-      <div class="staff-stats">
-        <div class="staff-stat">
-          <div class="staff-stat-val">${myOrders.length}</div>
-          <div class="staff-stat-label">Заказов</div>
+        <div class="staff-stats">
+          <div class="staff-stat"><div class="staff-stat-val">${myOrders.length}</div><div class="staff-stat-label">Заказов</div></div>
+          <div class="staff-stat"><div class="staff-stat-val" style="color:var(--green-dark)">${myRev.toLocaleString()} с</div><div class="staff-stat-label">Выручка</div></div>
+          <div class="staff-stat"><div class="staff-stat-val" style="color:var(--orange)">${myComm.toLocaleString()} с</div><div class="staff-stat-label">10%</div></div>
         </div>
-        <div class="staff-stat">
-          <div class="staff-stat-val" style="color:var(--green-dark)">${myRev.toLocaleString()} с</div>
-          <div class="staff-stat-label">Выручка</div>
+        <div class="staff-actions">
+          <button class="staff-btn staff-btn-edit" onclick="openEditStaffModal(${s.id})">✏️ Изменить</button>
+          <button class="staff-btn staff-btn-del" onclick="deleteStaff(${s.id})">🗑 Удалить</button>
         </div>
-        <div class="staff-stat">
-          <div class="staff-stat-val" style="color:var(--orange)">${myComm.toLocaleString()} с</div>
-          <div class="staff-stat-label">10% комиссия</div>
-        </div>
-      </div>
-      <div class="staff-actions">
-        <button class="staff-btn staff-btn-edit" onclick="openEditStaffModal(${s.id})">✏️ Изменить</button>
-        <button class="staff-btn staff-btn-del" onclick="deleteStaff(${s.id})">🗑 Удалить</button>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  } catch(e){ console.error(e); }
 }
+
+// keep renderStaff as alias
+function renderStaff(){ loadStaff(); }
 
 function openAddStaffModal(){
   editStaffId=null;
@@ -816,32 +815,35 @@ function openEditStaffModal(id){
   document.getElementById('staffModalTitle').textContent='Редактировать сотрудника';
   document.getElementById('staffName').value=s.name;
   document.getElementById('staffLogin').value=s.login;
-  document.getElementById('staffPass').value=s.pass;
+  document.getElementById('staffPass').value='';
   document.getElementById('staffRole').value=s.role;
   document.getElementById('staffModal').classList.add('open');
 }
 
-function saveStaff(){
+async function saveStaff(){
   const name=document.getElementById('staffName').value.trim();
   const login=document.getElementById('staffLogin').value.trim();
   const pass=document.getElementById('staffPass').value.trim();
   const role=document.getElementById('staffRole').value;
-  if(!name||!login||!pass){showToast('Заполните все поля','red');return;}
-  if(editStaffId){
-    Object.assign(STAFF.find(s=>s.id===editStaffId),{name,login,pass,role});
-    showToast('✅ Данные обновлены','green');
-  } else {
-    STAFF.push({id:STAFF.length?Math.max(...STAFF.map(s=>s.id))+1:1,name,login,pass,role});
-    showToast('✅ Сотрудник добавлен','green');
-  }
-  closeStaffModal();
-  renderStaff();
+  if(!name||!login){showToast('Заполните имя и логин','red');return;}
+  try {
+    if(editStaffId){
+      await mApi('PUT',`/api/staff/${editStaffId}`,{name,login,password:pass||undefined,role});
+      showToast('✅ Данные обновлены','green');
+    } else {
+      if(!pass){showToast('Введите пароль','red');return;}
+      await mApi('POST','/api/staff',{name,login,password:pass,role});
+      showToast('✅ Сотрудник добавлен','green');
+    }
+    closeStaffModal();
+    await loadStaff();
+  } catch(e){ showToast('Ошибка сохранения','red'); }
 }
 
-function deleteStaff(id){
+async function deleteStaff(id){
   if(!confirm('Удалить сотрудника?')) return;
-  STAFF=STAFF.filter(s=>s.id!==id);
-  renderStaff();
+  await mApi('DELETE',`/api/staff/${id}`);
+  await loadStaff();
   showToast('Сотрудник удалён','red');
 }
 
