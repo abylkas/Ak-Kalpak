@@ -483,55 +483,85 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== DATA =====
-const USERS = [
-  { login:'aliya', pass:'1111', name:'Алия', role:'waiter' },
-  { login:'bakyt', pass:'2222', name:'Бакыт', role:'waiter' },
-  { login:'admin', pass:'0000', name:'Менеджер', role:'manager' },
-];
-
-const MENU = [
-  { id:1, cat:'zavtrak', emoji:'🥚', name:'Яйцо Бенедикт', desc:'Пашот, голландез, тост', price:499 },
-  { id:2, cat:'zavtrak', emoji:'🍳', name:'Омлет с томатами', desc:'Шпинат, базилик, сыр', price:360 },
-  { id:3, cat:'zavtrak', emoji:'🥞', name:'Панкейки с тирамису', desc:'Клубника, маскарпоне', price:490 },
-  { id:4, cat:'zavtrak', emoji:'🍽️', name:'Английский завтрак', desc:'Колбаски, бекон, тост', price:690 },
-  { id:5, cat:'zakuski', emoji:'🥐', name:'Брускетта с лососем', desc:'Крем-сыр, каперсы', price:250 },
-  { id:6, cat:'zakuski', emoji:'🧀', name:'Сырные крокеты', desc:'Моцарелла, маринара', price:390 },
-  { id:7, cat:'zakuski', emoji:'🍢', name:'Куриные шашлычки', desc:'Травяной маринад', price:280 },
-  { id:8, cat:'salaty', emoji:'🥗', name:'Цезарь с курицей', desc:'Романо, пармезан', price:450 },
-  { id:9, cat:'salaty', emoji:'🥙', name:'Греческий с фетой', desc:'Томаты, маслины', price:520 },
-  { id:10, cat:'napitki', emoji:'☕', name:'Капучино', desc:'Двойной эспрессо', price:120 },
-  { id:11, cat:'napitki', emoji:'🍵', name:'Зелёный чай', desc:'Сенча, 500 мл', price:90 },
-  { id:12, cat:'napitki', emoji:'🧃', name:'Свежевыжатый сок', desc:'Апельсин, 300 мл', price:150 },
-  { id:13, cat:'napitki', emoji:'🥤', name:'Лимонад манго', desc:'Домашний, с мятой', price:180 },
-  { id:14, cat:'deserty', emoji:'🍰', name:'Тирамису', desc:'Савоярди, маскарпоне', price:350 },
-  { id:15, cat:'deserty', emoji:'🧁', name:'Чизкейк Нью-Йорк', desc:'Ягодный соус', price:290 },
-];
+// ===== CONFIG =====
+const SERVER_URL = 'https://ak-kalpak-production.up.railway.app';
 
 // ===== STATE =====
 let currentUser = null;
-let cart = {}; // { itemId: qty }
-let activeOrders = []; // [{id, table, waiter, items:[{item,qty}], total, time}]
+let token = null;
+let MENU = [];
+let CATEGORIES = [];
+let cart = {};
+let activeOrders = [];
 let closedOrders = [];
-let orderCounter = 1;
-let currentAddTarget = null; // order id for adding items
+let currentAddTarget = null;
+
+// ===== API =====
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(SERVER_URL + path, opts);
+  return res.json();
+}
 
 // ===== AUTH =====
-function doLogin() {
+async function doLogin() {
   const login = document.getElementById('loginInput').value.trim();
   const pass = document.getElementById('passInput').value.trim();
-  const user = USERS.find(u => u.login === login && u.pass === pass);
-  if (!user) {
+  if (!login || !pass) return;
+
+  const btn = document.querySelector('.btn-green');
+  btn.textContent = 'Входим...';
+  btn.disabled = true;
+
+  try {
+    const data = await api('POST', '/api/auth/login', { login, password: pass });
+    if (data.error) {
+      document.getElementById('loginError').style.display = 'block';
+      btn.textContent = 'Войти';
+      btn.disabled = false;
+      return;
+    }
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('wt', token);
+    localStorage.setItem('wu', JSON.stringify(currentUser));
+    await initApp();
+  } catch(e) {
+    document.getElementById('loginError').textContent = 'Ошибка соединения';
     document.getElementById('loginError').style.display = 'block';
-    return;
+    btn.textContent = 'Войти';
+    btn.disabled = false;
   }
-  currentUser = user;
+}
+
+async function initApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   document.getElementById('app').style.flexDirection = 'column';
-  document.getElementById('topbarName').textContent = user.name;
+  document.getElementById('topbarName').textContent = currentUser.name;
   document.getElementById('topbarRole').textContent =
-    (user.role === 'manager' ? 'Менеджер' : 'Официант') + ' · Смена активна';
+    (currentUser.role === 'manager' ? 'Менеджер' : 'Официант') + ' · Смена активна';
+
+  // Загрузить меню с сервера
+  showToast('Загружаем меню...', '');
+  const menuData = await api('GET', '/api/menu');
+  MENU = menuData.dishes || [];
+  CATEGORIES = menuData.categories || [];
+
+  // Загрузить активные заказы
+  const today = new Date().toISOString().split('T')[0];
+  const ordersData = await api('GET', `/api/orders?date=${today}`);
+  if (Array.isArray(ordersData)) {
+    activeOrders = ordersData.filter(o => o.status === 'open' && o.waiter_name === currentUser.name);
+    closedOrders = ordersData.filter(o => o.status === 'closed' && o.waiter_name === currentUser.name);
+  }
+
+  renderCats();
   renderMenu('all');
 }
 
@@ -539,11 +569,26 @@ document.getElementById('passInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
+// Автологин если токен сохранён
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('wt');
+  const savedUser = localStorage.getItem('wu');
+  if (saved && savedUser) {
+    token = saved;
+    currentUser = JSON.parse(savedUser);
+    initApp();
+  }
+});
+
 function doLogout() {
+  token = null;
   currentUser = null;
   cart = {};
   activeOrders = [];
   closedOrders = [];
+  MENU = [];
+  localStorage.removeItem('wt');
+  localStorage.removeItem('wu');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('loginInput').value = '';
@@ -563,11 +608,21 @@ function showPage(pageId, btn) {
 }
 
 // ===== MENU RENDER =====
+function renderCats() {
+  const wrap = document.getElementById('cats');
+  if (!wrap) return;
+  wrap.innerHTML = `<button class="cat-btn active" onclick="filterCat('all',this)">Все</button>` +
+    CATEGORIES.map(c => `<button class="cat-btn" onclick="filterCat('${c.id}',this)">${c.name}</button>`).join('');
+}
+
 function renderMenu(cat) {
   const grid = document.getElementById('menuGrid');
-  const items = cat === 'all' ? MENU : MENU.filter(m => m.cat === cat);
+  const items = cat === 'all' ? MENU : MENU.filter(m => m.category_id == cat);
   grid.innerHTML = items.map(item => {
     const qty = cart[item.id] || 0;
+    const photo = item.photo_url
+      ? `<img src="${item.photo_url}" class="m-card-img" style="object-fit:cover" alt="${item.name}">`
+      : `<div class="m-card-img">🍽️</div>`;
     const ctrl = qty > 0
       ? `<div class="qty-ctrl">
            <button onclick="changeQty(${item.id},-1)">−</button>
@@ -576,11 +631,11 @@ function renderMenu(cat) {
          </div>`
       : `<button class="add-btn" onclick="changeQty(${item.id},1)">+</button>`;
     return `<div class="m-card">
-      <div class="m-card-img">${item.emoji}</div>
+      ${photo}
       <div class="m-card-body">
         <div class="m-card-price">${item.price} с</div>
         <div class="m-card-name">${item.name}</div>
-        <div class="m-card-desc">${item.desc}</div>
+        <div class="m-card-desc">${item.description || ''}</div>
       </div>
       ${ctrl}
     </div>`;
@@ -596,12 +651,9 @@ function filterCat(cat, btn) {
 function changeQty(id, delta) {
   cart[id] = (cart[id] || 0) + delta;
   if (cart[id] <= 0) delete cart[id];
-
-  // re-render only changed card
   const activeCat = document.querySelector('.cat-btn.active');
-  const cat = activeCat ? activeCat.textContent : 'Все';
-  const catMap = {'Все':'all','Завтраки':'zavtrak','Закуски':'zakuski','Салаты':'salaty','Напитки':'napitki','Десерты':'deserty'};
-  renderMenu(catMap[cat] || 'all');
+  const catId = activeCat ? activeCat.getAttribute('onclick').match(/'([^']+)'/)?.[1] || 'all' : 'all';
+  renderMenu(catId);
   updateCartBar();
 }
 
@@ -626,8 +678,32 @@ function updateCartBar() {
 
 function openCartModal() {
   renderCartModal();
-  document.getElementById('cartModal').classList.add('open');
+  if (currentAddTarget !== null) {
+    const order = activeOrders.find(o => o.id === currentAddTarget);
+    document.getElementById('addToOrderTitle').textContent = '➕ Добавить к ' + (order ? order.table_name : '');
+    const items = Object.entries(cart).map(([id,qty]) => {
+      const item = MENU.find(m => m.id == id);
+      return `<div class="cart-item">
+        <div class="cart-item-img">🍽️</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${item.price} с × ${qty}</div>
+        </div>
+        <div class="cart-item-ctrl">
+          <button class="ci-btn" onclick="changeQty(${id},-1);openCartModal()">−</button>
+          <span class="ci-qty">${qty}</span>
+          <button class="ci-btn" onclick="changeQty(${id},1);openCartModal()">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('addCartItems').innerHTML = items;
+    document.getElementById('addModalTotal').textContent = cartTotal() + ' с';
+    document.getElementById('addToOrderModal').classList.add('open');
+  } else {
+    document.getElementById('cartModal').classList.add('open');
+  }
 }
+
 function closeCartModal() {
   document.getElementById('cartModal').classList.remove('open');
 }
@@ -636,7 +712,7 @@ function renderCartModal() {
   const items = Object.entries(cart).map(([id,qty]) => {
     const item = MENU.find(m => m.id == id);
     return `<div class="cart-item">
-      <div class="cart-item-img">${item.emoji}</div>
+      <div class="cart-item-img">🍽️</div>
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">${item.price} с × ${qty} = ${item.price*qty} с</div>
@@ -658,8 +734,8 @@ function deleteCartItem(id) {
   renderCartModal();
   updateCartBar();
   const activeCat = document.querySelector('.cat-btn.active');
-  const catMap = {'Все':'all','Завтраки':'zavtrak','Закуски':'zakuski','Салаты':'salaty','Напитки':'napitki','Десерты':'deserty'};
-  renderMenu(catMap[activeCat?.textContent] || 'all');
+  const catId = activeCat ? activeCat.getAttribute('onclick').match(/'([^']+)'/)?.[1] || 'all' : 'all';
+  renderMenu(catId);
 }
 
 function setTable(name) {
@@ -669,70 +745,60 @@ function setTable(name) {
   });
 }
 
-function submitOrder() {
+async function submitOrder() {
   if (cartCount() === 0) { showToast('Корзина пуста', 'red'); return; }
   const tableVal = document.getElementById('tableInput').value.trim();
-  const tableLabel = tableVal || 'Стол (без названия)';
+  if (!tableVal) { showToast('Укажи название стола', 'red'); return; }
 
-  const orderItems = Object.entries(cart).map(([id,qty]) => ({
-    item: MENU.find(m => m.id == id), qty
-  }));
+  const items = Object.entries(cart).map(([id, qty]) => {
+    const item = MENU.find(m => m.id == id);
+    return { dish_id: item.id, dish_name: item.name, price: item.price, quantity: qty, category: item.category_name };
+  });
 
-  const order = {
-    id: orderCounter++,
-    table: tableLabel,
-    tableNum: tableVal,
-    waiter: currentUser.name,
-    items: orderItems,
-    total: cartTotal(),
-    time: new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}),
-    status: 'open'
-  };
+  try {
+    const data = await api('POST', '/api/orders', { table_name: tableVal, items });
+    if (data.error) { showToast('Ошибка: ' + data.error, 'red'); return; }
 
-  activeOrders.push(order);
-  cart = {};
-  document.getElementById('tableInput').value = '';
-  document.querySelectorAll('.quick-table-btn').forEach(b => b.classList.remove('selected'));
-  closeCartModal();
-  updateCartBar();
-  renderMenu('all');
-  document.querySelectorAll('.cat-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    activeOrders.push(data);
+    cart = {};
+    document.getElementById('tableInput').value = '';
+    document.querySelectorAll('.quick-table-btn').forEach(b => b.classList.remove('selected'));
+    closeCartModal();
+    updateCartBar();
+    renderMenu('all');
 
-  showToast('✅ Заказ оформлен — ' + tableLabel, 'green');
-
-  // Show dot on orders tab
-  document.getElementById('ordersDot').style.display = 'block';
-
-  // Simulate kitchen print
-  setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1200);
+    showToast('✅ Заказ оформлен — ' + tableVal, 'green');
+    document.getElementById('ordersDot').style.display = 'block';
+    setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1200);
+  } catch(e) {
+    showToast('Ошибка соединения', 'red');
+  }
 }
 
 // ===== ORDERS =====
 function openNewOrderModal() {
-  // Just go to menu tab to pick items
   showPage('pageMenu', document.querySelector('.nav-btn'));
   showToast('Выберите блюда и нажмите на корзину');
 }
 
 function renderOrders() {
   const list = document.getElementById('ordersList');
-  const myOrders = activeOrders.filter(o => o.waiter === currentUser.name || currentUser.role === 'manager');
-  if (myOrders.length === 0) {
+  if (activeOrders.length === 0) {
     list.innerHTML = '<div class="empty-state"><div class="es-icon">🍽️</div><p>Нет активных столов</p></div>';
     return;
   }
-  list.innerHTML = myOrders.map(order => `
+  list.innerHTML = activeOrders.map(order => `
     <div class="order-card">
       <div class="order-card-header">
-        <div class="order-table">📍 ${order.table}</div>
+        <div class="order-table">📍 ${order.table_name}</div>
         <div class="order-status status-open">Открыт</div>
       </div>
-      <div class="order-waiter">👤 ${order.waiter} · ${order.time}</div>
+      <div class="order-waiter">👤 ${order.waiter_name} · ${new Date(order.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</div>
       <div class="order-items-list">
-        ${order.items.map(r => `
+        ${(order.items||[]).map(r => `
           <div class="order-item-row">
-            <span class="order-item-name">${r.item.emoji} ${r.item.name} × ${r.qty}</span>
-            <span class="order-item-price">${r.item.price * r.qty} с</span>
+            <span class="order-item-name">${r.dish_name} × ${r.quantity}</span>
+            <span class="order-item-price">${r.dish_price * r.quantity} с</span>
           </div>`).join('')}
       </div>
       <div class="order-footer">
@@ -746,18 +812,23 @@ function renderOrders() {
   `).join('');
 }
 
-function closeOrder(orderId) {
-  const idx = activeOrders.findIndex(o => o.id === orderId);
-  if (idx === -1) return;
-  const order = activeOrders[idx];
-  order.status = 'closed';
-  order.closeTime = new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
-  closedOrders.unshift(order);
-  activeOrders.splice(idx, 1);
-  renderOrders();
-  showToast('🖨️ Итоговый чек отправлен менеджеру', 'green');
-  if (activeOrders.filter(o => o.waiter === currentUser.name).length === 0) {
-    document.getElementById('ordersDot').style.display = 'none';
+async function closeOrder(orderId) {
+  try {
+    const data = await api('POST', `/api/orders/${orderId}/close`);
+    if (data.error) { showToast('Ошибка: ' + data.error, 'red'); return; }
+
+    const idx = activeOrders.findIndex(o => o.id === orderId);
+    if (idx !== -1) {
+      const order = activeOrders[idx];
+      order.status = 'closed';
+      closedOrders.unshift(order);
+      activeOrders.splice(idx, 1);
+    }
+    renderOrders();
+    showToast('✅ Стол закрыт — чек отправлен', 'green');
+    if (activeOrders.length === 0) document.getElementById('ordersDot').style.display = 'none';
+  } catch(e) {
+    showToast('Ошибка соединения', 'red');
   }
 }
 
@@ -766,42 +837,8 @@ function startAddToOrder(orderId) {
   currentAddTarget = orderId;
   cart = {};
   updateCartBar();
-  // Go to menu, items will go to addToOrder flow
   showPage('pageMenu', document.querySelectorAll('.nav-btn')[0]);
   showToast('Выберите блюда для добавления к заказу');
-  // Override submit button behaviour via flag — handled in openCartModal
-}
-
-// Override cart modal for "add to order" mode
-const _origOpenCart = openCartModal;
-function openCartModal() {
-  renderCartModal();
-  if (currentAddTarget !== null) {
-    // Show add-to-order modal instead
-    const order = activeOrders.find(o => o.id === currentAddTarget);
-    document.getElementById('addToOrderTitle').textContent = '➕ Добавить к ' + (order ? order.table : '');
-    // render add cart
-    const items = Object.entries(cart).map(([id,qty]) => {
-      const item = MENU.find(m => m.id == id);
-      return `<div class="cart-item">
-        <div class="cart-item-img">${item.emoji}</div>
-        <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-price">${item.price} с × ${qty}</div>
-        </div>
-        <div class="cart-item-ctrl">
-          <button class="ci-btn" onclick="changeQty(${id},-1);openCartModal()">−</button>
-          <span class="ci-qty">${qty}</span>
-          <button class="ci-btn" onclick="changeQty(${id},1);openCartModal()">+</button>
-        </div>
-      </div>`;
-    }).join('');
-    document.getElementById('addCartItems').innerHTML = items;
-    document.getElementById('addModalTotal').textContent = cartTotal() + ' с';
-    document.getElementById('addToOrderModal').classList.add('open');
-  } else {
-    document.getElementById('cartModal').classList.add('open');
-  }
 }
 
 function closeAddModal() {
@@ -812,48 +849,59 @@ function closeAddModal() {
   renderMenu('all');
 }
 
-function confirmAddToOrder() {
+async function confirmAddToOrder() {
   if (cartCount() === 0) { showToast('Корзина пуста', 'red'); return; }
   const order = activeOrders.find(o => o.id === currentAddTarget);
   if (!order) return;
 
-  Object.entries(cart).forEach(([id, qty]) => {
+  const items = Object.entries(cart).map(([id, qty]) => {
     const item = MENU.find(m => m.id == id);
-    const existing = order.items.find(r => r.item.id == id);
-    if (existing) existing.qty += qty;
-    else order.items.push({ item, qty });
-    order.total += item.price * qty;
+    return { dish_id: item.id, dish_name: item.name, price: item.price, quantity: qty, category: item.category_name };
   });
 
-  closeAddModal();
-  showToast('✅ Блюда добавлены к ' + order.table, 'green');
-  setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1000);
+  try {
+    const data = await api('POST', `/api/orders/${currentAddTarget}/add-items`, { items });
+    if (data.error) { showToast('Ошибка: ' + data.error, 'red'); return; }
+
+    // Обновить локальный заказ
+    items.forEach(it => {
+      const existing = (order.items||[]).find(r => r.dish_name === it.dish_name);
+      if (existing) existing.quantity += it.quantity;
+      else (order.items = order.items||[]).push({ dish_name: it.dish_name, dish_price: it.price, quantity: it.quantity });
+      order.total += it.price * it.quantity;
+    });
+
+    closeAddModal();
+    showToast('✅ Блюда добавлены к ' + order.table_name, 'green');
+    setTimeout(() => showToast('🖨️ Чек отправлен на кухню', 'green'), 1000);
+  } catch(e) {
+    showToast('Ошибка соединения', 'red');
+  }
 }
 
 // ===== HISTORY =====
 function renderHistory() {
-  const myOrders = closedOrders.filter(o => o.waiter === currentUser.name || currentUser.role === 'manager');
   const list = document.getElementById('historyList');
-  if (myOrders.length === 0) {
+  if (closedOrders.length === 0) {
     list.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><p>История пуста</p></div>';
     document.getElementById('historyStats').style.display = 'none';
     return;
   }
-  list.innerHTML = myOrders.map(o => `
+  list.innerHTML = closedOrders.map(o => `
     <div class="history-card">
       <div class="history-header">
-        <div class="history-table">📍 ${o.table}</div>
-        <div class="history-time">${o.closeTime || o.time}</div>
+        <div class="history-table">📍 ${o.table_name}</div>
+        <div class="history-time">${new Date(o.closed_at||o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:4px">
-        ${o.items.map(r => r.item.name + ' ×' + r.qty).join(', ')}
+        ${(o.items||[]).map(r => r.dish_name + ' ×' + r.quantity).join(', ')}
       </div>
       <div class="history-total">${o.total} с</div>
       <div class="history-comm">Моя комиссия (10%): ${Math.round(o.total*0.1)} с</div>
     </div>
   `).join('');
 
-  const totalSum = myOrders.reduce((s,o) => s+o.total, 0);
+  const totalSum = closedOrders.reduce((s,o) => s+o.total, 0);
   document.getElementById('statTotal').textContent = totalSum + ' с';
   document.getElementById('statComm').textContent = 'Моя комиссия (10%): ' + Math.round(totalSum*0.1) + ' с';
   document.getElementById('historyStats').style.display = 'block';
