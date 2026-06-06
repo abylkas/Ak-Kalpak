@@ -431,6 +431,8 @@ function doLogin(){
     }
     managerToken=data.token;
     currentUser=data.user;
+    localStorage.setItem('mt', data.token);
+    localStorage.setItem('mu', JSON.stringify(data.user));
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='flex';
     document.getElementById('app').style.flexDirection='column';
@@ -447,8 +449,28 @@ function doLogin(){
 }
 document.getElementById('passInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
+// Автологин если токен сохранён
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('mt');
+  const savedUser = localStorage.getItem('mu');
+  if (saved && savedUser) {
+    managerToken = saved;
+    currentUser = JSON.parse(savedUser);
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('app').style.flexDirection='column';
+    document.getElementById('topbarName').textContent=currentUser.name;
+    document.getElementById('dashDate').value=dStr(today);
+    document.getElementById('ordersDate').value=dStr(today);
+    document.getElementById('staffDate').value=dStr(today);
+    renderDash();
+  }
+});
+
 function doLogout(){
-  currentUser=null;
+  managerToken=null; currentUser=null;
+  localStorage.removeItem('mt');
+  localStorage.removeItem('mu');
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('loginInput').value='';
