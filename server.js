@@ -155,7 +155,9 @@ app.put('/api/manager/dishes/:id', auth, managerOnly, async (req, res) => {
 // ---- ЗАКАЗЫ ----
 
 app.get('/api/orders', auth, async (req, res) => {
-  const date = req.query.date || new Date().toISOString().split('T')[0];
+  // Если дата не передана — берём сегодня по Бишкеку
+  const bishkekNow = new Date(Date.now() + 6 * 60 * 60 * 1000);
+  const date = req.query.date || bishkekNow.toISOString().split('T')[0];
   try {
     const { rows: orders } = await pool.query(
       `SELECT o.* FROM orders o
@@ -363,7 +365,8 @@ app.delete('/api/staff/:id', auth, managerOnly, async (req, res) => {
 // ---- СТАТИСТИКА ----
 
 app.get('/api/stats', auth, managerOnly, async (req, res) => {
-  const date = req.query.date || new Date().toISOString().split('T')[0];
+  const bishkekNow = new Date(Date.now() + 6 * 60 * 60 * 1000);
+  const date = req.query.date || bishkekNow.toISOString().split('T')[0];
   try {
     const { rows: rev } = await pool.query(
       `SELECT COUNT(*) as count, COALESCE(SUM(total),0) as revenue FROM orders
