@@ -480,6 +480,14 @@ function doLogout(){
 
 // ===== API =====
 const SERVER_URL = 'https://ak-kalpak-production.up.railway.app';
+// Конвертация UTC времени в Бишкек (UTC+6)
+function toBishkekTime(utcStr) {
+  if (!utcStr) return '';
+  const d = new Date(utcStr);
+  d.setHours(d.getHours() + 6);
+  return d.toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'});
+}
+
 let managerToken = null;
 
 async function mApi(method, path, body) {
@@ -621,7 +629,7 @@ function renderOrdersList(){
         <div class="order-table">📍 ${o.table_name}</div>
         <div class="badge ${o.status==='open'?'badge-open':'badge-closed'}">${o.status==='open'?'Открыт':'Закрыт'}</div>
       </div>
-      <div class="order-meta">👤 ${o.waiter_name||''} · 🕐 ${new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bishkek'})}</div>
+      <div class="order-meta">👤 ${o.waiter_name||''} · 🕐 ${toBishkekTime(o.created_at)}</div>
       <div class="order-rows">
         ${(o.items||[]).map(it=>`<div class="order-row">
           <span class="order-row-name">${it.dish_name} × ${it.quantity}</span>
