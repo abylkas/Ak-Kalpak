@@ -393,6 +393,10 @@
         <option value="manager">Менеджер</option>
       </select>
     </div>
+    <div class="form-group">
+      <label class="form-label">Telegram Chat ID (для уведомлений)</label>
+      <input class="inp" id="staffTgId" placeholder="Например: 6648558730">
+    </div>
     <button class="btn-green" onclick="saveStaff()">💾 Сохранить</button>
     <button onclick="closeStaffModal()" style="width:100%;margin-top:10px;padding:13px;border:none;background:none;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;color:var(--text-light);cursor:pointer">Отмена</button>
   </div>
@@ -846,7 +850,7 @@ function renderStaff(){ loadStaff(); }
 
 function openAddStaffModal(){
   editStaffId=null;
-  ['staffName','staffLogin','staffPass'].forEach(id=>document.getElementById(id).value='');
+  ['staffName','staffLogin','staffPass','staffTgId'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('staffRole').value='waiter';
   document.getElementById('staffModalTitle').textContent='Добавить сотрудника';
   document.getElementById('staffModal').classList.add('open');
@@ -860,6 +864,7 @@ function openEditStaffModal(id){
   document.getElementById('staffLogin').value=s.login;
   document.getElementById('staffPass').value='';
   document.getElementById('staffRole').value=s.role;
+  document.getElementById('staffTgId').value=s.telegram_chat_id||'';
   document.getElementById('staffModal').classList.add('open');
 }
 
@@ -868,14 +873,15 @@ async function saveStaff(){
   const login=document.getElementById('staffLogin').value.trim();
   const pass=document.getElementById('staffPass').value.trim();
   const role=document.getElementById('staffRole').value;
+  const telegram_chat_id=document.getElementById('staffTgId').value.trim()||null;
   if(!name||!login){showToast('Заполните имя и логин','red');return;}
   try {
     if(editStaffId){
-      await mApi('PUT',`/api/staff/${editStaffId}`,{name,login,password:pass||undefined,role});
+      await mApi('PUT',`/api/staff/${editStaffId}`,{name,login,password:pass||undefined,role,telegram_chat_id});
       showToast('✅ Данные обновлены','green');
     } else {
       if(!pass){showToast('Введите пароль','red');return;}
-      await mApi('POST','/api/staff',{name,login,password:pass,role});
+      await mApi('POST','/api/staff',{name,login,password:pass,role,telegram_chat_id});
       showToast('✅ Сотрудник добавлен','green');
     }
     closeStaffModal();
