@@ -155,15 +155,18 @@ app.put('/api/manager/dishes/:id', auth, managerOnly, async (req, res) => {
 // ---- ЗАКАЗЫ ----
 
 app.get('/api/orders', auth, async (req, res) => {
-  // Если дата не передана — берём сегодня по Бишкеку
   const bishkekNow = new Date(Date.now() + 6 * 60 * 60 * 1000);
   const date = req.query.date || bishkekNow.toISOString().split('T')[0];
+  // Конвертируем бишкекскую дату в UTC диапазон
+  // Бишкек UTC+6: начало дня 00:00 BSK = 18:00 предыдущего дня UTC
+  const startUTC = new Date(date + 'T00:00:00+06:00');
+  const endUTC = new Date(date + 'T23:59:59+06:00');
   try {
     const { rows: orders } = await pool.query(
       `SELECT o.* FROM orders o
-       WHERE o.cafe_id=$1 AND DATE(o.created_at AT TIME ZONE 'Asia/Bishkek')=$2
+       WHERE o.cafe_id=$1 AND o.created_at >= $2 AND o.created_at <= $3
        ORDER BY o.created_at DESC`,
-      [CAFE_ID, date]
+      [CAFE_ID, startUTC.toISOString(), endUTC.toISOString()]
     );
     for (const order of orders) {
       const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id=$1', [order.id]);
@@ -367,31 +370,37 @@ app.delete('/api/staff/:id', auth, managerOnly, async (req, res) => {
 app.get('/api/stats', auth, managerOnly, async (req, res) => {
   const bishkekNow = new Date(Date.now() + 6 * 60 * 60 * 1000);
   const date = req.query.date || bishkekNow.toISOString().split('T')[0];
+  const startUTC = new Date(date + 'T00:00:00+06:00');
+  const endUTC = new Date(date + 'T23:59:59+06:00');
   try {
     const { rows: rev } = await pool.query(
       `SELECT COUNT(*) as count, COALESCE(SUM(total),0) as revenue FROM orders
-       WHERE cafe_id=$1 AND status='closed' AND DATE(created_at AT TIME ZONE 'Asia/Bishkek')=$2`,
-      [CAFE_ID, date]
+       WHERE cafe_id=$1 AND status='closed' AND created_at >= $2 AND created_at <= $3`,
+      [CAFE_ID, startUTC.toISOString(), endUTC.toISOString()]
     );
     const { rows: topDishes } = await pool.query(
       `SELECT oi.dish_name, SUM(oi.quantity) as qty, SUM(oi.quantity*oi.dish_price) as revenue
        FROM order_items oi JOIN orders o ON oi.order_id=o.id
-       WHERE o.cafe_id=$1 AND o.status='closed' AND DATE(o.created_at AT TIME ZONE 'Asia/Bishkek')=$2
+       WHERE o.cafe_id=$1 AND o.status='closed' AND o.created_at >= $2 AND o.created_at <= $3
        GROUP BY oi.dish_name ORDER BY qty DESC LIMIT 10`,
-      [CAFE_ID, date]
+      [CAFE_ID, startUTC.toISOString(), endUTC.toISOString()]
     );
     const { rows: byWaiter } = await pool.query(
       `SELECT waiter_name, COUNT(*) as orders, COALESCE(SUM(total),0) as revenue
-       FROM orders WHERE cafe_id=$1 AND status='closed' AND DATE(created_at AT TIME ZONE 'Asia/Bishkek')=$2
+       FROM orders WHERE cafe_id=$1 AND status='closed' AND created_at >= $2 AND created_at <= $3
        GROUP BY waiter_name ORDER BY revenue DESC`,
-      [CAFE_ID, date]
+      [CAFE_ID, startUTC.toISOString(), endUTC.toISOString()]
     );
     const { rows: open } = await pool.query(
       `SELECT COUNT(*) as count FROM orders WHERE cafe_id=$1 AND status='open'`, [CAFE_ID]
     );
+    // Неделя — последние 7 дней по Бишкеку
     const { rows: week } = await pool.query(
-      `SELECT DATE(created_at AT TIME ZONE 'Asia/Bishkek') as day, COALESCE(SUM(total),0) as revenue
-       FROM orders WHERE cafe_id=$1 AND status='closed' AND created_at >= NOW()-INTERVAL '7 days'
+      `SELECT 
+         TO_CHAR(created_at + INTERVAL '6 hours', 'YYYY-MM-DD') as day,
+         COALESCE(SUM(total),0) as revenue
+       FROM orders WHERE cafe_id=$1 AND status='closed'
+       AND created_at >= NOW() - INTERVAL '7 days'
        GROUP BY day ORDER BY day`,
       [CAFE_ID]
     );
