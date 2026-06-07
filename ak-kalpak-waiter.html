@@ -793,7 +793,7 @@ function renderOrders() {
         <div class="order-table">📍 ${order.table_name}</div>
         <div class="order-status status-open">Открыт</div>
       </div>
-      <div class="order-waiter">👤 ${order.waiter_name} · ${new Date(order.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="order-waiter">👤 ${order.waiter_name} · ${new Date(order.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bishkek'})}</div>
       <div class="order-items-list">
         ${(order.items||[]).map(r => `
           <div class="order-item-row">
@@ -911,7 +911,7 @@ function renderHistory() {
     <div class="history-card">
       <div class="history-header">
         <div class="history-table">📍 ${o.table_name}</div>
-        <div class="history-time">${new Date(o.closed_at||o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="history-time">${new Date(o.closed_at||o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bishkek'})}</div>
       </div>
       <div style="font-size:11px;color:var(--text-light);font-weight:600;margin-bottom:4px">
         ${(o.items||[]).map(r => r.dish_name + ' ×' + r.quantity).join(', ')}
