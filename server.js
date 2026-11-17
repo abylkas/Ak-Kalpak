@@ -69,44 +69,64 @@ function managerOnly(req, res, next) {
 
 // ---- AUTH ----
 
+// ---- AUTH ----
+
 app.post('/api/auth/login', async (req, res) => {
-  const { login, password } = req.body;
   try {
+    const { login, password } = req.body;
+
+    if (!login || !password) {
+      return res.status(400).json({ error: 'Введите логин и пароль' });
+    }
+
     const { rows } = await pool.query(
       'SELECT * FROM staff WHERE login=$1 AND is_active=TRUE AND cafe_id=$2',
       [login, CAFE_ID]
     );
-    if (!rows.length) return res.status(401).json({ error: 'Неверный логин или пароль' });
-    const user = rows[0];
-    // Прямая проверка без шифрования (только для теста входа):
-if (password !== '123456') {
-    return res.status(401).json({ error: 'Неверный пароль' });
-const token = jwt.sign(
-  {
-    id: user.id,
-    name: user.name,
-    role: user.role,
-    cafe_id: user.cafe_id
-  },
-  JWT_SECRET,
-  { expiresIn: '12h' }
-);
 
-res.json({
-  token,
-  user: {
-    id: user.id,
-    name: user.name,
-    role: user.role
+    if (!rows.length) {
+      return res.status(401).json({ error: 'Неверный логин или пароль' });
+    }
+
+    const user = rows[0];
+
+    // Проверяем пароль по хешу из базы данных
+    const passwordValid = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Неверный логин или пароль' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        cafe_id: user.cafe_id
+      },
+      JWT_SECRET,
+      { expiresIn: '12h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role
+      }
+    });
+
+  } catch (e) {
+    console.error('Ошибка авторизации:', e);
+    res.status(500).json({
+      error: 'Внутренняя ошибка сервера'
+    });
   }
 });
-
-} catch (e) {
-  res.status(500).json({
-    error: 'CRASH: ' + e.message,
-    stack: e.stack
-  });
-}
 
 // ---- МЕНЮ (публичное) ----
 
