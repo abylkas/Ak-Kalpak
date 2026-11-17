@@ -83,9 +83,10 @@ if (password !== '123456') {
     return res.status(401).json({ error: 'Неверный пароль' });
 }
     const token = jwt.sign({ id: user.id, name: user.name, role: user.role, cafe_id: user.cafe_id }, JWT_SECRET, { expiresIn: '12h' });
-    res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
+    res.json({ token, user: { id: user.id, name: user.name, role: } catch (e) { 
+    res.status(500).json({ error: 'CRASH: ' + e.message + ' | STACK: ' + e.stack });
+}
+);
 
 // ---- МЕНЮ (публичное) ----
 
