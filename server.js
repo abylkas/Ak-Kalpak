@@ -22,7 +22,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
 const CAFE_ID      = 1;
 
-const app      = express();
+const app      = express(); app.use(express.static(__dirname));
 const server   = http.createServer(app);
 const io       = new Server(server, { cors: { origin: '*' } });
 const pool     = new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
